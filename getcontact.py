@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# Dmitry Chastuhin
+# Dmitry  Chastuhin
 # Twitter: https://twitter.com/_chipik
 
 from Crypto.Cipher import AES
@@ -22,31 +22,39 @@ Information about API was received by reverse engineering "app.source.getcontact
 
 parser = argparse.ArgumentParser(description=help_desc, formatter_class=argparse.RawTextHelpFormatter)
 parser.add_argument('-p', '--phoneNumber', help='Phone number (example: +79217XXX514)')
-parser.add_argument('-t', '--token', required=True, help='Token for request (Ex:: AxPA568b72d9c908520b95407e6e95b5482c7995fd98b1e794a2e516a3d1)')
+parser.add_argument('-t', '--token', required=True, help='Token for request (Ex:: AxPud1318615f614e7f3a041c94ed8ad655e2172156917bcaff3f9d1d5e8)')
+parser.add_argument('-k', '--key',required=True, help='AES key (Ex:: 0d3badabbf2bf06b1e343dc1ca0ae711d324efe3309e013d8603a6418072a417)')
 parser.add_argument('-d', '--deviceID', default='27b6dc0c3cb{}'.format(randint(10000, 90000)), help='DeviceID (default: 27b6dc0c3cb{})'.format(randint(10000, 90000)))
 parser.add_argument('-c', '--countryCode', default='US', help='Country code (default: US)')
 parser.add_argument('-a', '--all', action='store_true', help='Print all possible info')
 parser.add_argument('-D', '--decrypt', help='Decrypt data')
 parser.add_argument('-E', '--encrypt', help='Encrypt data')
 parser.add_argument('-P', '--proxy', help='Use proxy (ex: 127.0.0.1:8080)')
+parser.add_argument('-T', '--newuser', action='store_true', help='get new token from server')
+# parser.add_argument('-N', '--noencrypt', action='store_true', help='Send request in clear text')
 parser.add_argument('-v', '--debug', action='store_true', help='Show debug info')
 args = parser.parse_args()
 
 
 # Global vars
 HMAC_key= "2Wq7)qkX~cp7)H|n_tc&o+:G_USN3/-uIi~>M+c ;Oq]E{t9)RC_5|lhAA_Qq%_4"
-AES_key = "0705a53f0b0c1fbe14d68313939c6683f2baa687aff535dd2469291834bff606".decode("hex")
-base_url = "https://pbssrv-centralevents.com"
-base_uri = "/v2.1/"
-methods = {"number-detail":"details", "search":"search", "verify-code":""}
-timestamp = str(time.time()).split('.')[0]
+AES_key = "{}".format(args.key).decode("hex")
+token = args.token
+# Not so important things fro app
+exp = 2082716
+mod = 900719925481
 
+# Others
+base_url = "https://pbssrv-centralevents.com"
+base_uri_api = "/v2.1/"
+methods = {"number-detail":"details", "search":"search", "verify-code":"", "register":""}
+timestamp = str(time.time()).split('.')[0]
 
 headers = {
     "X-App-Version": "4.2.0",
     "X-Req-Timestamp": timestamp,
     "X-Os": "android 7.1.1",
-    "X-Token": args.token,
+    "X-Token": token,
     "X-Encrypted": "1",
     "X-Client-Device-Id": args.deviceID,
     "X-Req-Signature": "",
@@ -58,12 +66,28 @@ headers = {
 data = {"countryCode":args.countryCode,
         "phoneNumber":args.phoneNumber,
         "source":"",
-        "token":args.token,
+        "token":token,
         }
 
-captcha_data={"token":args.token,
+captcha_data={"token":token,
               "validationCode":"",
               }
+
+new_vars_data={"adjustId":"aa8a3ea2e1c10552070e3aeb93d0cfea",
+               "adjustParams":
+                   {"adid":"aa8a3ea2e1c10552070e3aeb93d0cfea",
+                    "network":"Organic",
+                    "trackerName":"Organic",
+                    "trackerToken":"5nd8yt7"
+                    },
+               "androidId":args.deviceID,
+               "countryCode":args.countryCode,
+               "deviceName":"Android~SDK~built~for~x86",
+               "deviceType":"Android",
+               "gpsAdid":"273c9507-1d80-4913-b3f0-03e5fde34810",
+               "peerKey":"734470887651",
+               "timeZone":"Europe/Moscow"
+               }
 
 proxies={}
 verify = True
@@ -86,8 +110,43 @@ def init_logger(logname, level):
     logger.addHandler(ch)
     return logger
 
+
+def set_new_token(new_token):
+    global token
+    logger.debug("Setting new token value:{}".format(new_token))
+    token = new_token
+    headers["X-Token"] = token
+    data["token"] = token
+    captcha_data["token"] = token
+
+def set_new_aes_key(new_aes_key):
+    global AES_key
+    logger.debug("Setting new AES key:{}".format(new_aes_key))
+    AES_key = "{}".format(new_aes_key).decode("hex")
+
+
+def calculate_new_aes_key(serverKey):
+    print "Calculating new AES key. It can takes time..."
+    longInt = int(serverKey)**exp%mod
+    new_key =  hashlib.sha256(bytearray(str(longInt), "utf-8")).hexdigest()
+    return str(new_key)
+
+
+def get_new_vars():
+    print "Getting new token and AES key..."
+    method = "register"
+    headers["X-Token"]=""
+    result = send_req_to_the_server(base_url + base_uri_api + method, new_vars_data, True)
+    new_token = result["result"]["token"]
+    serverKey = result["result"]["serverKey"]
+    logger.debug("New token: {}\nserverKey:{}".format(new_token, serverKey))
+    new_key = calculate_new_aes_key(serverKey)
+    print "New token: {}\nNew AES key:{}".format(new_token, new_key)
+    set_new_token(token)
+    set_new_aes_key(new_key)
+
 def prepare_payload(payload):
-    return json.dumps(payload).replace(" ","")
+    return json.dumps(payload).replace(" ","").replace("~"," ")
 
 def create_sign(timestamp, payload):
     logger.debug("Signing...\n{}-{}".format(timestamp, payload))
@@ -99,11 +158,13 @@ def create_sign(timestamp, payload):
 
 def send_post(url, data):
     logger.debug("Sending request: {}\nDATA: {}".format(url, data))
-    data = json.dumps({"data":data})
     r = requests.post(url, data=data, headers=headers, proxies = proxies, verify=verify)
     if r.status_code == 200:
         logger.debug("Response: {}".format(r.json()["data"]))
         return r.json()["data"]
+    if r.status_code == 201:
+        logger.debug("Response: {}".format(r.json()))
+        return r.json()
     elif r.status_code == 404:
         print "Nothing found for {} :(".format(args.phoneNumber)
     elif r.status_code == 403:
@@ -134,9 +195,14 @@ def encrypt_aes(str):
     cipher = AES.new(AES_key, AES.MODE_ECB)
     return base64.b64encode(cipher.encrypt(raw))
 
-def send_req_to_the_server(url, payload):
+def send_req_to_the_server(url, payload, no_encrypt = False):
     headers["X-Req-Signature"] = create_sign(timestamp, prepare_payload(payload))
-    result_enc = send_post(url, encrypt_aes(prepare_payload(payload)))
+    if no_encrypt:
+        headers["X-Encrypted"]="0"
+        result_dec = send_post(url, prepare_payload(payload))
+        return result_dec
+    else:
+        result_enc = send_post(url, json.dumps({"data":encrypt_aes(prepare_payload(payload))}))
     if isinstance(result_enc,int):
         result = {'meta':{}}
         result['meta']['httpStatusCode'] = result_enc
@@ -225,7 +291,7 @@ def get_number_info(phoneNumber):
     method = "search"
     data["source"] = methods[method]
     data["phoneNumber"] = phoneNumber
-    result = send_req_to_the_server(base_url + base_uri + method, data)
+    result = send_req_to_the_server(base_url + base_uri_api + method, data)
     if result['meta']['httpStatusCode'] == 200:
         profile = result['result']['profile']
         profile['tags'] = []
@@ -245,21 +311,24 @@ def get_number_info(phoneNumber):
         code = result['meta']['errorCode']
         print "Error ({}):".format(code),
         print result['meta']['errorMessage']
+        # return result['meta']['httpStatusCode']
         return [result['meta']['httpStatusCode'], ""]
     elif result['meta']['httpStatusCode'] == 404:
         code = result['meta']['errorCode']
         print "Error ({}):".format(code),
         print result['meta']['errorMessage']
+        # return result['meta']['httpStatusCode']
         return [result['meta']['httpStatusCode'], ""]
     else:
         print "Something wrong!"
         return [777, ""]
+        # return 0
     if profile['tagCount'] > 0:
         # 1 - /v2.1/number-detail
         method = "number-detail"
         data["source"] = methods[method]
         headers["X-Req-Signature"] = create_sign(timestamp, prepare_payload(data))
-        result_enc = send_post(base_url + base_uri + method, encrypt_aes(prepare_payload(data)))
+        result_enc = send_post(base_url + base_uri_api + method, json.dumps({"data":encrypt_aes(prepare_payload(data))}))
         result_dec = json.loads(decrypt_aes(base64.b64decode(result_enc)))
         if result_dec['meta']['httpStatusCode'] == 200:
             tags_nbr = len(result_dec['result']['tags'])
@@ -274,6 +343,9 @@ def get_number_info(phoneNumber):
 if __name__ == '__main__':
     if args.debug:
         logger = init_logger("GetContact", logging.DEBUG)
+
+    if args.newuser:
+        get_new_vars()
 
     if args.phoneNumber:
         #0 - /v2.1/search

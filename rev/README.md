@@ -3,7 +3,9 @@
 - Main\(\)
     - Traffic
     - Encryption
+        - AES key calculation
     - Signature
+    - Init token and AES key
     - Tools
 
 <!-- /MarkdownTOC -->
@@ -97,7 +99,6 @@ Java.perform(function x() {
 });
 ```
 
-
 So, know we can try to decrypt data from intercepted traffic:
 
 ```python
@@ -116,6 +117,57 @@ Decrypted: {countryCode:US,phoneNumber:+79040991328,source:detail,token:AxPu569b
 ```
 
 It works!
+
+
+### AES key calculation
+
+Right from installation application sends `register` request to the server
+
+```req
+POST /v2.1/register HTTP/1.1
+X-Req-Timestamp: 1548968515989
+User-Agent: Dalvik/2.1.0 (Linux; U; Android 7.1.1; Android SDK built for x86 Build/NYC)
+X-Os: android 7.1.1
+X-Encrypted: 0
+X-Client-Device-Id: 37b6dc0c4cb9a598
+X-Lang: en_US
+X-App-Version: 4.2.0
+X-Req-Signature: yaKSrt7wKp6OTCf6e3cZ82K2Bs4UuWjnWwrwb/8DeZI=
+Content-Type: application/json; charset=UTF-8
+Content-Length: 390
+Host: pbssrv-centralevents.com
+Connection: close
+Accept-Encoding: gzip, deflate
+
+{"adjustId":"aa8a3ea2e1c10552070e3aeb93d0cfea","adjustParams":{"adid":"aa8a3ea2e1c10552070e3aeb93d0cfea","network":"Organic","trackerName":"Organic","trackerToken":"5nd8yt7"},"androidId":"37b6dc0c4cb9a598","countryCode":"us","deviceName":"Android SDK built for x86","deviceType":"Android","gpsAdid":"273c9507-1d80-4913-b3f0-03e5fde34810","peerKey":"734470887651","timeZone":"Europe/Moscow"}
+```
+
+For AES key calculation app uses `serverKey` parameter form registration response:
+
+```resp
+HTTP/1.1 201 Created
+Date: Thu, 31 Jan 2019 21:01:53 GMT
+Content-Type: application/json; charset=UTF-8
+Connection: close
+Server: nginx
+X-Encrypted: 0
+Content-Length: 909
+
+{"meta":{"requestId":"172-31-9-53-REQ-5c536241120b7","httpStatusCode":201},"result":{"token":"AxPub4a6575279f0d87735dac89c1fd2908844b651f45e6f21fe61b4a95f","serverKey":"400467965658","cert":true,"isd":false,"localizationKey":"lc-1548160689","isSoftUpdate":false,"isForceUpdate":false,"storeUrl":null,"inviteUrl":"https:\/\/gogtc.co\/invite","updateMessage":null,"ratingOptions":{"callHistoryShow":false,"searchHistoryShow":false,"spamTabShow":false},"isVerified":false,"mTag":0,"chkStatus":false,"sStatus":true,"mTagSkipDuration":5,"social":[{"name":"instagram","title":"Instagram","link":"https:\/\/www.instagram.com\/getcontact\/"},{"name":"facebook","title":"Facebook","link":"https:\/\/www.facebook.com\/getcontactapp\/"},{"name":"twitter","title":"Twitter","link":"https:\/\/twitter.com\/getcontactapp"},{"name":"linkedin","title":"Linkedin","link":"https:\/\/www.linkedin.com\/company\/getcontact\/"}]}}
+```
+
+
+App calculates sha256 hash from `(serverKey ^ 2082716) mod 900719925481`. Result is our AES key.
+
+```python
+def calculate_new_aes_key(serverKey):
+    print "Calculating new AES key. It can takes time..."
+    longInt = int(serverKey)**exp%mod
+    new_key =  hashlib.sha256(bytearray(str(longInt), "utf-8")).hexdigest()
+    return str(new_key)
+```
+
+
 Let's move to the signature.
 
 ## Signature
@@ -220,6 +272,118 @@ def create_sign(timestamp, payload):
 
 That's all folks!
 We can encrypt/decrypt data and sign request.
+
+
+## Init token and AES key
+
+Looks like for during first launch getcontact initialize AES key and user's token.
+
+
+```request
+POST /v2.1/register HTTP/1.1
+X-Req-Timestamp: 1548968515989
+User-Agent: Dalvik/2.1.0 (Linux; U; Android 7.1.1; Android SDK built for x86 Build/NYC)
+X-Os: android 7.1.1
+X-Encrypted: 0
+X-Client-Device-Id: 37b6dc0c3cb9a595
+X-Lang: en_US
+X-App-Version: 4.2.0
+X-Req-Signature: yaKSrt7wKp6OTCf6e3cZ82K2Bs4UuWjnWwrwb/8DeZI=
+Content-Type: application/json; charset=UTF-8
+Content-Length: 390
+Host: pbssrv-centralevents.com
+Connection: close
+Accept-Encoding: gzip, deflate
+
+{"adjustId":"aa8a3ea2e1c10552070e3aeb93d0cfea","adjustParams":{"adid":"aa8a3ea2e1c10552070e3aeb93d0cfea","network":"Organic","trackerName":"Organic","trackerToken":"5nd8yt7"},"androidId":"37b6dc0c3cb9a595","countryCode":"us","deviceName":"Android SDK built for x86","deviceType":"Android","gpsAdid":"273c9507-1d80-4913-b3f0-03e5fde34810","peerKey":"734470887651","timeZone":"Europe/Moscow"}
+ ```
+
+We can find token in clear text in response:
+
+```response
+HTTP/1.1 201 Created
+Date: Thu, 31 Jan 2019 21:01:53 GMT
+Content-Type: application/json; charset=UTF-8
+Connection: close
+Server: nginx
+X-Encrypted: 0
+Content-Length: 909
+
+{"meta":{"requestId":"172-31-9-53-REQ-5c536241120b7","httpStatusCode":201},"result":{"token":"AxPub4a6575279f0d87735dac89c1fd2908844b651f45e6f21fe61b4a95f","serverKey":"400567965658","cert":true,"isd":false,"localizationKey":"lc-1548160689","isSoftUpdate":false,"isForceUpdate":false,"storeUrl":null,"inviteUrl":"https:\/\/gogtc.co\/invite","updateMessage":null,"ratingOptions":{"callHistoryShow":false,"searchHistoryShow":false,"spamTabShow":false},"isVerified":false,"mTag":0,"chkStatus":false,"sStatus":true,"mTagSkipDuration":5,"social":[{"name":"instagram","title":"Instagram","link":"https:\/\/www.instagram.com\/getcontact\/"},{"name":"facebook","title":"Facebook","link":"https:\/\/www.facebook.com\/getcontactapp\/"},{"name":"twitter","title":"Twitter","link":"https:\/\/twitter.com\/getcontactapp"},{"name":"linkedin","title":"Linkedin","link":"https:\/\/www.linkedin.com\/company\/getcontact\/"}]}}
+```
+
+
+looks like AES key is generated using `serverKey` from response in method from `ᔮ` class
+
+```java
+    public final void ˊ(String str) {
+        Object obj;
+        byte[] bArr;
+        int i = 2 % 2;
+        eqi.ॱ(ᔮ.ˊ(126, 24, 10888).intern());
+        float currentTimeMillis = (float) System.currentTimeMillis();
+        String obj2 = new BigInteger(str).modPow(ˋ, this.ᐝ).toString();
+        Charset charset = fyl.ᐝ;
+        if (obj2 == null) {
+            obj = null;
+        } else {
+            obj = 1;
+        }
+        switch (obj) {
+            case null:
+                i = ॱˊ + 95;
+                ˏॱ = i % 128;
+                if (i % 2 == 0) {
+                    bArr = null;
+                    i = 40 / 0;
+                } else {
+                    bArr = null;
+                }
+                i = 2 % 2;
+                break;
+            default:
+                bArr = obj2.getBytes(charset);
+                break;
+        }
+        this.ʻ = fym.ˏ(fyq.ˏ(Constants.SHA256).digest(bArr));
+        float currentTimeMillis2 = ((float) System.currentTimeMillis()) - currentTimeMillis;
+        eqi.ˊ(ᔮ.ˊ(150, 22, 0).intern(), Float.valueOf(currentTimeMillis2));
+        if (Ꭻ.ˎ == null) {
+            Ꭻ.ˎ = new Ꭻ(Ꭻ.ˋ);
+        }
+        Ꭻ.ˎ.ˊ.edit().putString(ᔮ.ˊ(105, 10, 55851).intern(), ˏ.toString()).apply();
+        if (Ꭻ.ˎ == null) {
+            Ꭻ.ˎ = new Ꭻ(Ꭻ.ˋ);
+        }
+        try {
+            Ꭻ Ꭻ = Ꭻ.ˎ;
+            try {
+                Ꭻ.ˊ.edit().putString(ᔮ.ˊ(115, 11, 3617).intern(), ˋ.toString()).apply();
+                if (Ꭻ.ˎ == null) {
+                    Ꭻ.ˎ = new Ꭻ(Ꭻ.ˋ);
+                    i = 2 % 2;
+                }
+                Ꭻ.ˎ.ˊ.edit().putString(ᔮ.ˊ(96, 9, 0).intern(), this.ʻ).apply();
+                ˊ = true;
+                i = ॱˊ + 17;
+                ˏॱ = i % 128;
+                switch (i % 2 == 0 ? 51 : 81) {
+                    case 51:
+                        i = 25 / 0;
+                        return;
+                    default:
+                        return;
+                }
+            } catch (Exception e) {
+                throw e;
+            }
+        } catch (Exception e2) {
+            throw e2;
+        }
+    }
+```
+
+
 
 ## Tools
 
