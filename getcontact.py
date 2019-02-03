@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# Dmitry  Chastuhin
+# Dmitry Chastuhin
 # Twitter: https://twitter.com/_chipik
 
 from Crypto.Cipher import AES
@@ -22,8 +22,8 @@ Information about API was received by reverse engineering "app.source.getcontact
 
 parser = argparse.ArgumentParser(description=help_desc, formatter_class=argparse.RawTextHelpFormatter)
 parser.add_argument('-p', '--phoneNumber', help='Phone number (example: +79217XXX514)')
-parser.add_argument('-t', '--token', required=True, help='Token for request (Ex:: AxPud1318615f614e7f3a041c94ed8ad655e2172156917bcaff3f9d1d5e8)')
-parser.add_argument('-k', '--key',required=True, help='AES key (Ex:: 0d3badabbf2bf06b1e343dc1ca0ae711d324efe3309e013d8603a6418072a417)')
+parser.add_argument('-t', '--token', help='Token for request (Ex:: AxPA568b72d9c908520b95407e6e95b5482c7995fd98b1e794a2e516a3d1)')
+parser.add_argument('-k', '--key', help='AES key (Ex:: 0d3badabbf2bf06b1e343dc1ca0ae711d324efe3309e013d8603a6418072a417)')
 parser.add_argument('-d', '--deviceID', default='27b6dc0c3cb{}'.format(randint(10000, 90000)), help='DeviceID (default: 27b6dc0c3cb{})'.format(randint(10000, 90000)))
 parser.add_argument('-c', '--countryCode', default='US', help='Country code (default: US)')
 parser.add_argument('-a', '--all', action='store_true', help='Print all possible info')
@@ -35,19 +35,18 @@ parser.add_argument('-T', '--newuser', action='store_true', help='get new token 
 parser.add_argument('-v', '--debug', action='store_true', help='Show debug info')
 args = parser.parse_args()
 
-
 # Global vars
-HMAC_key= "2Wq7)qkX~cp7)H|n_tc&o+:G_USN3/-uIi~>M+c ;Oq]E{t9)RC_5|lhAA_Qq%_4"
+HMAC_key = "2Wq7)qkX~cp7)H|n_tc&o+:G_USN3/-uIi~>M+c ;Oq]E{t9)RC_5|lhAA_Qq%_4"
 AES_key = "{}".format(args.key).decode("hex")
 token = args.token
-# Not so important things fro app
+# Not so important things from app
 exp = 2082716
 mod = 900719925481
 
 # Others
 base_url = "https://pbssrv-centralevents.com"
 base_uri_api = "/v2.1/"
-methods = {"number-detail":"details", "search":"search", "verify-code":"", "register":""}
+methods = {"number-detail": "details", "search": "search", "verify-code": "", "register": ""}
 timestamp = str(time.time()).split('.')[0]
 
 headers = {
@@ -62,41 +61,41 @@ headers = {
     "Connection": "close",
     "Accept-Encoding": "gzip, deflate"}
 
-
-data = {"countryCode":args.countryCode,
-        "phoneNumber":args.phoneNumber,
-        "source":"",
-        "token":token,
+data = {"countryCode": args.countryCode,
+        "phoneNumber": args.phoneNumber,
+        "source": "",
+        "token": token,
         }
 
-captcha_data={"token":token,
-              "validationCode":"",
-              }
+captcha_data = {"token": token,
+                "validationCode": "",
+                }
 
-new_vars_data={"adjustId":"aa8a3ea2e1c10552070e3aeb93d0cfea",
-               "adjustParams":
-                   {"adid":"aa8a3ea2e1c10552070e3aeb93d0cfea",
-                    "network":"Organic",
-                    "trackerName":"Organic",
-                    "trackerToken":"5nd8yt7"
-                    },
-               "androidId":args.deviceID,
-               "countryCode":args.countryCode,
-               "deviceName":"Android~SDK~built~for~x86",
-               "deviceType":"Android",
-               "gpsAdid":"273c9507-1d80-4913-b3f0-03e5fde34810",
-               "peerKey":"734470887651",
-               "timeZone":"Europe/Moscow"
-               }
+new_vars_data = {"adjustId": "aa8a3ea2e1c10552070e3aeb93d0cfea",
+                 "adjustParams":
+                     {"adid": "aa8a3ea2e1c10552070e3aeb93d0cfea",
+                      "network": "Organic",
+                      "trackerName": "Organic",
+                      "trackerToken": "5nd8yt7"
+                      },
+                 "androidId": args.deviceID,
+                 "countryCode": args.countryCode,
+                 "deviceName": "Android~SDK~built~for~x86",
+                 "deviceType": "Android",
+                 "gpsAdid": "273c9507-1d80-4913-b3f0-03e5fde34810",
+                 "peerKey": "734470887651",
+                 "timeZone": "Europe/Moscow"
+                 }
 
-proxies={}
+proxies = {}
 verify = True
 if args.proxy:
     verify = False
     proxies = {
-      'http': args.proxy,
-      'https': args.proxy,
+        'http': args.proxy,
+        'https': args.proxy,
     }
+
 
 def init_logger(logname, level):
     # generic log conf
@@ -119,6 +118,7 @@ def set_new_token(new_token):
     data["token"] = token
     captcha_data["token"] = token
 
+
 def set_new_aes_key(new_aes_key):
     global AES_key
     logger.debug("Setting new AES key:{}".format(new_aes_key))
@@ -127,15 +127,15 @@ def set_new_aes_key(new_aes_key):
 
 def calculate_new_aes_key(serverKey):
     print "Calculating new AES key. It can takes time..."
-    longInt = int(serverKey)**exp%mod
-    new_key =  hashlib.sha256(bytearray(str(longInt), "utf-8")).hexdigest()
+    longInt = int(serverKey) ** exp % mod
+    new_key = hashlib.sha256(bytearray(str(longInt), "utf-8")).hexdigest()
     return str(new_key)
 
 
 def get_new_vars():
     print "Getting new token and AES key..."
     method = "register"
-    headers["X-Token"]=""
+    headers["X-Token"] = ""
     result = send_req_to_the_server(base_url + base_uri_api + method, new_vars_data, True)
     new_token = result["result"]["token"]
     serverKey = result["result"]["serverKey"]
@@ -145,8 +145,10 @@ def get_new_vars():
     set_new_token(token)
     set_new_aes_key(new_key)
 
+
 def prepare_payload(payload):
-    return json.dumps(payload).replace(" ","").replace("~"," ")
+    return json.dumps(payload).replace(" ", "").replace("~", " ")
+
 
 def create_sign(timestamp, payload):
     logger.debug("Signing...\n{}-{}".format(timestamp, payload))
@@ -156,9 +158,10 @@ def create_sign(timestamp, payload):
     logger.debug("Result: {}".format(signature))
     return signature
 
+
 def send_post(url, data):
     logger.debug("Sending request: {}\nDATA: {}".format(url, data))
-    r = requests.post(url, data=data, headers=headers, proxies = proxies, verify=verify)
+    r = requests.post(url, data=data, headers=headers, proxies=proxies, verify=verify)
     if r.status_code == 200:
         logger.debug("Response: {}".format(r.json()["data"]))
         return r.json()["data"]
@@ -177,17 +180,20 @@ def send_post(url, data):
         print "Something wrong! Status: {}".format(r.status_code)
     return r.status_code
 
+
 BS = 16
 pad = lambda s: s + (BS - len(s) % BS) * chr(BS - len(s) % BS)
 unpad = lambda s: s[0:-ord(s[-1])]
 logger = init_logger("GetContact", logging.INFO)
 
+
 def decrypt_aes(payload):
     logger.debug("Decrypting...\nDATA:{}".format(payload.encode("hex")))
     cipher = AES.new(AES_key, AES.MODE_ECB)
-    rez =  unpad(cipher.decrypt(payload))
+    rez = unpad(cipher.decrypt(payload))
     logger.debug("Decrypted result:{}".format(rez))
     return rez
+
 
 def encrypt_aes(str):
     logger.debug("Encrypting...\nDATA:{}".format(str))
@@ -195,16 +201,17 @@ def encrypt_aes(str):
     cipher = AES.new(AES_key, AES.MODE_ECB)
     return base64.b64encode(cipher.encrypt(raw))
 
-def send_req_to_the_server(url, payload, no_encrypt = False):
+
+def send_req_to_the_server(url, payload, no_encrypt=False):
     headers["X-Req-Signature"] = create_sign(timestamp, prepare_payload(payload))
     if no_encrypt:
-        headers["X-Encrypted"]="0"
+        headers["X-Encrypted"] = "0"
         result_dec = send_post(url, prepare_payload(payload))
         return result_dec
     else:
-        result_enc = send_post(url, json.dumps({"data":encrypt_aes(prepare_payload(payload))}))
-    if isinstance(result_enc,int):
-        result = {'meta':{}}
+        result_enc = send_post(url, json.dumps({"data": encrypt_aes(prepare_payload(payload))}))
+    if isinstance(result_enc, int):
+        result = {'meta': {}}
         result['meta']['httpStatusCode'] = result_enc
         result['meta']['errorCode'] = result_enc
         result['meta']['errorMessage'] = str(result_enc)
@@ -235,6 +242,7 @@ def print_results(profile, remainingCount):
                 print tag.encode('utf-8').strip()
     return 0
 
+
 def handle_captcha(imgstring):
     logger.debug("Handling captcha...")
     imgdata = base64.b64decode(imgstring)
@@ -259,6 +267,7 @@ def handle_captcha(imgstring):
             print "Wrong Captcha!"
     return 1
 
+
 def save_captcha_bot(imgstring):
     logger.debug("Handling captcha...")
     imgdata = base64.b64decode(imgstring)
@@ -267,6 +276,7 @@ def save_captcha_bot(imgstring):
         f.write(imgdata)
     print "Captcha saved in file: {}".format(filename)
     return filename
+
 
 def send_captcha_bot(captcha_value):
     logger.debug("Got capthca value:{}".format(captcha_value))
@@ -285,6 +295,7 @@ def send_captcha_bot(captcha_value):
             logger.debug("Wrong Captcha!")
             print "Wrong Captcha!"
     return 1
+
 
 def get_number_info(phoneNumber):
     # return [code, data]
@@ -306,7 +317,7 @@ def get_number_info(phoneNumber):
             img_file = save_captcha_bot(result['result']['image'])
             # handle_captcha(result['result']['image'])
         # return code
-        return [result['meta']['httpStatusCode'],[code,img_file]]
+        return [result['meta']['httpStatusCode'], [code, img_file]]
     elif result['meta']['httpStatusCode'] == 400:
         code = result['meta']['errorCode']
         print "Error ({}):".format(code),
@@ -328,7 +339,8 @@ def get_number_info(phoneNumber):
         method = "number-detail"
         data["source"] = methods[method]
         headers["X-Req-Signature"] = create_sign(timestamp, prepare_payload(data))
-        result_enc = send_post(base_url + base_uri_api + method, json.dumps({"data":encrypt_aes(prepare_payload(data))}))
+        result_enc = send_post(base_url + base_uri_api + method,
+                               json.dumps({"data": encrypt_aes(prepare_payload(data))}))
         result_dec = json.loads(decrypt_aes(base64.b64decode(result_enc)))
         if result_dec['meta']['httpStatusCode'] == 200:
             tags_nbr = len(result_dec['result']['tags'])
@@ -348,11 +360,11 @@ if __name__ == '__main__':
         get_new_vars()
 
     if args.phoneNumber:
-        #0 - /v2.1/search
+        # 0 - /v2.1/search
         get_number_info(args.phoneNumber)
 
     if args.decrypt:
-        decrypted_payload =  decrypt_aes(base64.b64decode(args.decrypt))
+        decrypted_payload = decrypt_aes(base64.b64decode(args.decrypt))
         print "Decrypted: {}".format(decrypted_payload)
 
     if args.encrypt:

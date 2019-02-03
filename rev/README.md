@@ -31,7 +31,7 @@ Ok, obviously data in POST requests is:
 
 Let's decompile the application.
 
-![decompiled](img/decompiled.png) 
+![decompiled](img/decompiled.png)  
 
 It seems that the obfuscator worked here :/
 Let's drill it.
