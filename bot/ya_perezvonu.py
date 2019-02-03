@@ -24,7 +24,7 @@ This is telegram bot that allows you to easily get info about phone numbers usin
 '''
 
 parser = argparse.ArgumentParser(description=help_desc, formatter_class=argparse.RawTextHelpFormatter)
-parser.add_argument('-t', '--token', help='Telegram bot token (Ex.: 745764762:AAEmrlc5SjARqUEXcc0RS11SmkdSu9gY724)')
+parser.add_argument('-t', '--token', help='Telegram bot token (Ex.: 745763764:AAEmrlc5SjARqUEXcc2RS10SmkdSu9gY725)')
 # parser.add_argument('-p', '--pwd', default=''.join(random.choice(string.ascii_uppercase + string.digits + string.ascii_lowercase) for _ in range(10)), help='admin password for bot management')
 parser.add_argument('-v', '--debug', action='store_true', help='Show debug info')
 args = parser.parse_args()
@@ -136,11 +136,11 @@ def get_stat(limit):
     return table
 
 
-def get_top(field):
+def get_top(field, limit):
     conn = create_connection(sqlite_file)
     conn.row_factory = sqlite3.Row
     c = conn.cursor()
-    select_rem = "SELECT {}, count({}) from logs group by {} ORDER BY count({}) DESC;".format(field, field, field, field)  # SQLi for bughunters here :)
+    select_rem = "SELECT {}, count({}) from logs group by {} ORDER BY count({}) DESC LIMIT {};".format(field, field, field, field, limit)  # SQLi for bughunters here :)
     c.execute(select_rem)
     table = from_db_cursor(c)
     conn.close()
@@ -159,15 +159,19 @@ def get_about(bot, update, args):
         elif args[0] == "top" and update.message.from_user.name == admin_pwd:
             if len(args) > 1:
                 field = args[1]
+                limit = 10
+                if len(args) > 2:
+                    limit = args[2]
             else:
                 field = 'user_name'
-            rez = "TOP {}s:\n```\n".format(field) + get_top(field).get_string() + "\n```"
+                limit = 10
+            rez = "TOP {}s:\n```\n".format(field) + get_top(field, limit).get_string() + "\n```"
     else:
         if update.message.from_user.name == admin_pwd:
             rez = "Hello my master!\nYou can use commands:\n" \
                   "/batya stat 15 - Last 15 request (default 10)\n" \
-                  "/batya top user-name - Top users who asked bot (default: user-name)\n" \
-                  "/batya top requested-phone - Top requested-phone (default: user-name)\n"
+                  "/batya top user-name 15 - Top 15 users who asked bot (default: user-name)\n" \
+                  "/batya top requested-phone 15 - Top 15 requested-phone (default: user-name)\n"
         else:
             rez = "Hi {}.\n@Chpkk moy batya!".format(update.message.from_user.username)
 
