@@ -1,8 +1,7 @@
 ## What is it?
 
-This script allows to get information about phone number from GetContact servers.
-Information about API was received by reverse engineering `app.source.getcontact` Android application 
-
+This script allows to get information about phone number via *GetContact* and *NumBuster* APIs.
+Information about API was received by reverse engineering `app.source.getcontact` and `com.numbuster.android` Android applications
 
 ## How to use 
 
