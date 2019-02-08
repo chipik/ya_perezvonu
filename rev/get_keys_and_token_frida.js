@@ -1,12 +1,7 @@
 Java.perform(function x() { 
-	console.log("\nGetting AES key:")
+    console.log("\nGetting AES key:")
     var instance = Java.use("ᔮ");
     var result = instance.ॱ().ʻ.value;
-    console.log("Result: " + result)
-
-    console.log("Getting HMAC key...")
-    var instance = Java.use("ᔮ");
-    var result = instance.ॱ().ʼ.value;
     console.log("Result: " + result)
 
     console.log("Getting user token...")
@@ -14,13 +9,33 @@ Java.perform(function x() {
     var result = instance.ˋ();
     console.log("Result: " + result)
 
-    console.log("Getting module value...")
+    // console.log("Getting PRIVATE_KEY...")
+    // var sharedPreferences = Java.use("android.content.Context");
+    // var stringVal = sharedPreferences.getInstrumentation()
+    // console.log("Result: " + sharedPreferences)
+
+    console.log("Getting HMAC key...")
+    var instance = Java.use("ᔮ");
+    var result = instance.ॱ().ʼ.value;
+    console.log("Result: " + result)
+
+    console.log("Getting module value")
     var instance = Java.use("ᔮ");
     var result = instance.ˊ(0, 12, String.fromCharCode(38602));
     console.log("Result: " + result)
 
-    console.log("Getting exponent value...")
-    // We can take this value from Shared preferences `GetContactSettingsPref.xml` "string name="PRIVATE_KEY">2082716</string>"
+
+    // var sharedPreferences = Java.use("android.app.SharedPreferencesImpl");
+    //   sharedPreferences.getString.overload('java.lang.String', 'java.lang.String').implementation = function(var0, var1) {
+    //   console.log("[*] Getting PRIVATE_KEY...");
+    //   // var stringVal = this.getString("PRIVATE_KEY", "");
+    //   var stringVal = this.getString(var0, var1);
+    //   console.log("Result: " + stringVal)
+    //   return stringVal;
+    // }
+
+
+
 });
 
 
