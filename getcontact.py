@@ -22,11 +22,11 @@ Information about API was received by reverse engineering "app.source.getcontact
 
 parser = argparse.ArgumentParser(description=help_desc, formatter_class=argparse.RawTextHelpFormatter)
 parser.add_argument('-p', '--phoneNumber', help='Phone number (example: +79217XXX514)')
-parser.add_argument('-t', '--token', default='AxPub4a6575279f0d87735dac89c1fd2908844b651f45e6f21fe61b4a95f',
-                    help='Token for request (Ex:: AxPA568b72d9c908520b95407e6e95b5482c7995fd98b1e794a2e516a3d1)')
-parser.add_argument('-k', '--key', default='0d3badabbf2bf06b1e343dc1ca0ae711d324efe3309e013d8603a6418072a417',
+parser.add_argument('-t', '--token', default='AxPu256ea819925d2998e503e46c0cdc352e1d30c2d80921dc7f375497f3',
+                    help='Token for request (Ex:: AxPA468b72d9c908520b95407e6e85b5482c7995fd98b1e794a2e516a3d1)')
+parser.add_argument('-k', '--key', default='a352a81da6488fbf08fdcbadd60b5a2b7a0cae468cf9766125b5806d92e10da5',
                     help='AES key (Ex:: 0d3badabbf2bf06b1e343dc1ca0ae711d324efe3309e013d8603a6418072a417)')
-parser.add_argument('-d', '--deviceID', default='37b6dc0c3cb9a595'),
+parser.add_argument('-d', '--deviceID', default='37b6dc0c3cb9a595',
                     help='DeviceID (Ex.: 27b6dc0c3cb{})'.format(randint(10000, 90000)))
 parser.add_argument('-e', '--exp', default='2627976',
                     help='PRIVATE_KEY value')

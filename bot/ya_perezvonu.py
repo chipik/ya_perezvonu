@@ -2,9 +2,10 @@
 # Dmitry Chastuhin
 # Twitter: https://twitter.com/_chipik
 
+from getcontact import get_number_info, send_captcha_bot, get_vars, set_new_aes_key, set_new_token, set_new_exp, set_new_device_id
 from telegram.ext import Updater, CommandHandler, Filters, MessageHandler, InlineQueryHandler
 from telegram import InlineQueryResultArticle, InputTextMessageContent
-from getcontact import get_number_info, send_captcha_bot, get_vars, set_new_aes_key, set_new_token, set_new_exp, set_new_device_id
+from numbuster import get_number_info_NumBuster
 from prettytable import from_db_cursor
 import argparse
 import logging
@@ -24,7 +25,7 @@ This is telegram bot that allows you to easily get info about phone numbers usin
 '''
 
 parser = argparse.ArgumentParser(description=help_desc, formatter_class=argparse.RawTextHelpFormatter)
-parser.add_argument('-t', '--token', help='Telegram bot token (Ex.: 735773762:AAEmrlc5SjARqUEXcc0RS10SmkdSu8gY724)')
+parser.add_argument('-t', '--token', help='Telegram bot token')
 # parser.add_argument('-p', '--pwd', default=''.join(random.choice(string.ascii_uppercase + string.digits + string.ascii_lowercase) for _ in range(10)), help='admin password for bot management')
 parser.add_argument('-v', '--debug', action='store_true', help='Show debug info')
 args = parser.parse_args()
@@ -109,11 +110,31 @@ def get_phone_info(bot, chat_id, user, phone_number):
     return to_client
 
 
+def get_phone_info_nb(bot, chat_id, user, phone_number):
+    format_text = "Please use this phone format: +XXXXXXXXXXX (Ex: +79876543210)"
+    to_client = ""
+    if '+' in phone_number:
+        phone_number = phone_number.replace('+','')
+    if not re.match("\d*", phone_number): #best regex ever here
+        to_client = "Wrong phone number!\n{}".format(format_text)
+    rez = get_number_info_NumBuster(phone_number)
+    if rez[0] == 200:
+        to_client = rez[1]
+    elif rez[0]==428:
+        to_client = "Too many request"
+    else:
+        to_client = "Something wrong"
+    logger.info("Result:{}".format(to_client))
+    return to_client
+
 def get_info(bot, update):
     if get_reamins() > 10:
         logger.info("{} is searching for {}".format(update.message.from_user.name, update.message.text))
         bot.send_message(chat_id=update.message.chat_id,
-                         text=get_phone_info(bot, update.message.chat_id, update.message.from_user,
+                         text="*GetContact*\n\n"+get_phone_info(bot, update.message.chat_id, update.message.from_user,
+                                             update.message.text), parse_mode="Markdown")
+        bot.send_message(chat_id=update.message.chat_id,
+                         text="*NumBuster*\n\n"+get_phone_info_nb(bot, update.message.chat_id, update.message.from_user,
                                              update.message.text), parse_mode="Markdown")
     else:
         bot.send_message(chat_id=update.message.chat_id, text="Sorry, but we have reached limit for today :(",
