@@ -22,9 +22,14 @@ Information about API was received by reverse engineering "app.source.getcontact
 
 parser = argparse.ArgumentParser(description=help_desc, formatter_class=argparse.RawTextHelpFormatter)
 parser.add_argument('-p', '--phoneNumber', help='Phone number (example: +79217XXX514)')
-parser.add_argument('-t', '--token', help='Token for request (Ex:: AxPA568b72d9c908520b95407e6e95b5482c7995fd98b1e794a2e516a3d1)')
-parser.add_argument('-k', '--key', help='AES key (Ex:: 0d3badabbf2bf06b1e343dc1ca0ae711d324efe3309e013d8603a6418072a417)')
-parser.add_argument('-d', '--deviceID', default='27b6dc0c3cb{}'.format(randint(10000, 90000)), help='DeviceID (default: 27b6dc0c3cb{})'.format(randint(10000, 90000)))
+parser.add_argument('-t', '--token', default='AxPub4a6575279f0d87735dac89c1fd2908844b651f45e6f21fe61b4a95f',
+                    help='Token for request (Ex:: AxPA568b72d9c908520b95407e6e95b5482c7995fd98b1e794a2e516a3d1)')
+parser.add_argument('-k', '--key', default='0d3badabbf2bf06b1e343dc1ca0ae711d324efe3309e013d8603a6418072a417',
+                    help='AES key (Ex:: 0d3badabbf2bf06b1e343dc1ca0ae711d324efe3309e013d8603a6418072a417)')
+parser.add_argument('-d', '--deviceID', default='37b6dc0c3cb9a595'),
+                    help='DeviceID (Ex.: 27b6dc0c3cb{})'.format(randint(10000, 90000)))
+parser.add_argument('-e', '--exp', default='2627976',
+                    help='PRIVATE_KEY value')
 parser.add_argument('-c', '--countryCode', default='US', help='Country code (default: US)')
 parser.add_argument('-a', '--all', action='store_true', help='Print all possible info')
 parser.add_argument('-D', '--decrypt', help='Decrypt data')
@@ -39,8 +44,10 @@ args = parser.parse_args()
 HMAC_key = "2Wq7)qkX~cp7)H|n_tc&o+:G_USN3/-uIi~>M+c ;Oq]E{t9)RC_5|lhAA_Qq%_4"
 AES_key = "{}".format(args.key).decode("hex")
 token = args.token
+device_id = args.deviceID
 # Not so important things from app
-exp = 2082716
+# cat /data/data/app.source.getcontact/shared_prefs/GetContactSettingsPref.xml | grep PRIVATE_KEY
+exp = int(args.exp)
 mod = 900719925481
 
 # Others
@@ -55,7 +62,7 @@ headers = {
     "X-Os": "android 7.1.1",
     "X-Token": token,
     "X-Encrypted": "1",
-    "X-Client-Device-Id": args.deviceID,
+    "X-Client-Device-Id": device_id,
     "X-Req-Signature": "",
     "Content-Type": "application/json; charset=utf-8",
     "Connection": "close",
@@ -78,7 +85,7 @@ new_vars_data = {"adjustId": "aa8a3ea2e1c10552070e3aeb93d0cfea",
                       "trackerName": "Organic",
                       "trackerToken": "5nd8yt7"
                       },
-                 "androidId": args.deviceID,
+                 "androidId": device_id,
                  "countryCode": args.countryCode,
                  "deviceName": "Android~SDK~built~for~x86",
                  "deviceType": "Android",
@@ -125,6 +132,20 @@ def set_new_aes_key(new_aes_key):
     AES_key = "{}".format(new_aes_key).decode("hex")
 
 
+def set_new_exp(new_exp):
+    global exp
+    logger.debug("Setting new mod:{}".format(new_exp))
+    exp = int(new_exp)
+
+
+def set_new_device_id(new_device_id):
+    global device_id
+    logger.debug("Setting new DeviceID:{}".format(new_device_id))
+    headers["X-Client-Device-Id"] = new_device_id
+    new_vars_data["androidId"] = new_device_id
+    device_id = new_device_id
+
+
 def calculate_new_aes_key(serverKey):
     print "Calculating new AES key. It can takes time..."
     longInt = int(serverKey) ** exp % mod
@@ -139,6 +160,12 @@ def get_new_vars():
     result = send_req_to_the_server(base_url + base_uri_api + method, new_vars_data, True)
     new_token = result["result"]["token"]
     serverKey = result["result"]["serverKey"]
+    # serverKey = 408701071142
+    print "Params:\n" \
+          "token: {}\n" \
+          "serverkey: {}\n" \
+          "exp: {}\n" \
+          "mod: {}".format(new_token, serverKey, exp, mod)
     logger.debug("New token: {}\nserverKey:{}".format(new_token, serverKey))
     new_key = calculate_new_aes_key(serverKey)
     print "New token: {}\nNew AES key:{}".format(new_token, new_key)
@@ -146,12 +173,17 @@ def get_new_vars():
     set_new_aes_key(new_key)
 
 
+def get_vars():
+    return (AES_key.encode('hex'), token, device_id, exp)
+
+
 def prepare_payload(payload):
     return json.dumps(payload).replace(" ", "").replace("~", " ")
 
 
 def create_sign(timestamp, payload):
-    logger.debug("Signing...\n{}-{}".format(timestamp, payload))
+    logger.debug("Signing...\n{}-{}\n"
+                 "key: {}".format(timestamp, payload, AES_key.encode('hex')))
     message = bytes("{}-{}".format(timestamp, payload))
     secret = bytes(HMAC_key)
     signature = base64.b64encode(hmac.new(secret, message, digestmod=hashlib.sha256).digest())

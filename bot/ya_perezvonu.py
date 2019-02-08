@@ -4,7 +4,7 @@
 
 from telegram.ext import Updater, CommandHandler, Filters, MessageHandler, InlineQueryHandler
 from telegram import InlineQueryResultArticle, InputTextMessageContent
-from getcontact import get_number_info, send_captcha_bot
+from getcontact import get_number_info, send_captcha_bot, get_vars, set_new_aes_key, set_new_token, set_new_exp, set_new_device_id
 from prettytable import from_db_cursor
 import argparse
 import logging
@@ -24,7 +24,7 @@ This is telegram bot that allows you to easily get info about phone numbers usin
 '''
 
 parser = argparse.ArgumentParser(description=help_desc, formatter_class=argparse.RawTextHelpFormatter)
-parser.add_argument('-t', '--token', help='Telegram bot token (Ex.: 745763764:AAEmrlc5SjARqUEXcc2RS10SmkdSu9gY725)')
+parser.add_argument('-t', '--token', help='Telegram bot token (Ex.: 735773762:AAEmrlc5SjARqUEXcc0RS10SmkdSu8gY724)')
 # parser.add_argument('-p', '--pwd', default=''.join(random.choice(string.ascii_uppercase + string.digits + string.ascii_lowercase) for _ in range(10)), help='admin password for bot management')
 parser.add_argument('-v', '--debug', action='store_true', help='Show debug info')
 args = parser.parse_args()
@@ -166,17 +166,35 @@ def get_about(bot, update, args):
                 field = 'user_name'
                 limit = 10
             rez = "TOP {}s:\n```\n".format(field) + get_top(field, limit).get_string() + "\n```"
+        elif args[0] == "get-vars" and update.message.from_user.name == admin_pwd:
+            vars = get_vars()
+            rez = "AES KEY: {}\n" \
+                  "token: {}\n" \
+                  "DeviceID: {}\n" \
+                  "PRIVATE\_KEY: {}".format(vars[0], vars[1], vars[2], vars[3])
+        elif args[0] == "set-vars" and update.message.from_user.name == admin_pwd:
+            if '-t' in args:
+                set_new_token(args[args.index('-t')+1])
+            if '-k' in args:
+                set_new_aes_key(args[args.index('-k')+1])
+            if '-d' in args:
+                set_new_device_id(args[args.index('-d')+1])
+            if '-e' in args:
+                set_new_exp(args[args.index('-e')+1])
+            rez = 'New vars have been setup'
     else:
         if update.message.from_user.name == admin_pwd:
             rez = "Hello my master!\nYou can use commands:\n" \
                   "/batya stat 15 - Last 15 request (default 10)\n" \
-                  "/batya top user-name 15 - Top 15 users who asked bot (default: user-name)\n" \
-                  "/batya top requested-phone 15 - Top 15 requested-phone (default: user-name)\n"
+                  "/batya top user\_name 15 - Top 15 users who asked bot (default: user-name)\n" \
+                  "/batya top requested\_phone 15 - Top 15 requested-phone (default: user-name)\n" \
+                  "/batya get-vars - Get vars values\n" \
+                  "/batya set-vars -t token -k key -d DeviceID -e PRIVATE-KEY"
         else:
             rez = "Hi {}.\n@Chpkk moy batya!".format(update.message.from_user.username)
 
     bot.send_message(chat_id=update.message.chat_id,
-                     text=rez.replace("_", ""), parse_mode="Markdown")
+                     text=rez, parse_mode="Markdown")
 
 
 def inline_get_info(bot, update):
