@@ -203,7 +203,7 @@ def get_about(bot, update, args):
             if '-e' in args:
                 set_new_exp(args[args.index('-e')+1])
             if '-r' in args:
-                log_reamins(args[args.index('-')+1])
+                log_reamins(args[args.index('-r')+1])
             rez = 'New vars have been setup'
     else:
         if update.message.from_user.name == admin_pwd:
