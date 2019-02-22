@@ -135,8 +135,7 @@ def set_new_aes_key(new_aes_key):
 def set_new_exp(new_exp):
     global exp
     logger.debug("Setting new mod:{}".format(new_exp))
-    exp = int(new_exp)
-
+    exp = int(new_exp) 
 
 def set_new_device_id(new_device_id):
     global device_id

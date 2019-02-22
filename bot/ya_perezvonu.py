@@ -25,7 +25,7 @@ This is telegram bot that allows you to easily get info about phone numbers usin
 '''
 
 parser = argparse.ArgumentParser(description=help_desc, formatter_class=argparse.RawTextHelpFormatter)
-parser.add_argument('-t', '--token', help='Telegram bot token')
+parser.add_argument('-t', '--token', help='Telegram bot token (Ex.: 745763762:AAEmrlc5SjARqUEXcc0RS10SmkdSu9gY724)')
 # parser.add_argument('-p', '--pwd', default=''.join(random.choice(string.ascii_uppercase + string.digits + string.ascii_lowercase) for _ in range(10)), help='admin password for bot management')
 parser.add_argument('-v', '--debug', action='store_true', help='Show debug info')
 args = parser.parse_args()
