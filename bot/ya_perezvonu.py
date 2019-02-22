@@ -25,7 +25,7 @@ This is telegram bot that allows you to easily get info about phone numbers usin
 '''
 
 parser = argparse.ArgumentParser(description=help_desc, formatter_class=argparse.RawTextHelpFormatter)
-parser.add_argument('-t', '--token', help='Telegram bot token (Ex.: 745763762:AAEmrlc5SjARqUEXcc0RS10SmkdSu9gY724)')
+parser.add_argument('-t', '--token', help='Telegram bot token')
 # parser.add_argument('-p', '--pwd', default=''.join(random.choice(string.ascii_uppercase + string.digits + string.ascii_lowercase) for _ in range(10)), help='admin password for bot management')
 parser.add_argument('-v', '--debug', action='store_true', help='Show debug info')
 args = parser.parse_args()
@@ -202,6 +202,8 @@ def get_about(bot, update, args):
                 set_new_device_id(args[args.index('-d')+1])
             if '-e' in args:
                 set_new_exp(args[args.index('-e')+1])
+            if '-r' in args:
+                log_reamins(args[args.index('-')+1])
             rez = 'New vars have been setup'
     else:
         if update.message.from_user.name == admin_pwd:
@@ -210,7 +212,7 @@ def get_about(bot, update, args):
                   "/batya top user\_name 15 - Top 15 users who asked bot (default: user-name)\n" \
                   "/batya top requested\_phone 15 - Top 15 requested-phone (default: user-name)\n" \
                   "/batya get-vars - Get vars values\n" \
-                  "/batya set-vars -t token -k key -d DeviceID -e PRIVATE-KEY"
+                  "/batya set-vars -t token -k key -d DeviceID -e PRIVATE-KEY -r REMAIN"
         else:
             rez = "Hi {}.\n@Chpkk moy batya!".format(update.message.from_user.username)
 
