@@ -133,12 +133,12 @@ def get_info(bot, update):
         bot.send_message(chat_id=update.message.chat_id,
                          text="*GetContact*\n\n"+get_phone_info(bot, update.message.chat_id, update.message.from_user,
                                              update.message.text), parse_mode="Markdown")
-        bot.send_message(chat_id=update.message.chat_id,
-                         text="*NumBuster*\n\n"+get_phone_info_nb(bot, update.message.chat_id, update.message.from_user,
-                                             update.message.text), parse_mode="Markdown")
-    else:
-        bot.send_message(chat_id=update.message.chat_id, text="Sorry, but we have reached limit for today :(",
-                         parse_mode="Markdown")
+    bot.send_message(chat_id=update.message.chat_id,
+                     text="*NumBuster*\n\n"+get_phone_info_nb(bot, update.message.chat_id, update.message.from_user,
+                                         update.message.text), parse_mode="Markdown")
+    # else:
+    #     bot.send_message(chat_id=update.message.chat_id, text="Sorry, but we have reached limit for today :(",
+    #                      parse_mode="Markdown")
 
 
 def get_remain(bot, update):
