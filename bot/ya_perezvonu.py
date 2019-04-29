@@ -24,6 +24,10 @@ This is telegram bot that allows you to easily get info about phone numbers usin
 --- chipik
 '''
 
+format_text = "Please use this phone format: +XXXXXXXXXXX (Ex: +79876543210)"
+
+message_size_limit = 4096
+
 parser = argparse.ArgumentParser(description=help_desc, formatter_class=argparse.RawTextHelpFormatter)
 parser.add_argument('-t', '--token', help='Telegram bot token')
 # parser.add_argument('-p', '--pwd', default=''.join(random.choice(string.ascii_uppercase + string.digits + string.ascii_lowercase) for _ in range(10)), help='admin password for bot management')
@@ -82,21 +86,21 @@ def help(bot, update):
 
 
 def get_phone_info(bot, chat_id, user, phone_number):
-    format_text = "Please use this phone format: +XXXXXXXXXXX (Ex: +79876543210)"
     to_client = ""
     if '+' not in phone_number:
         phone_number = "+{}".format(phone_number)
-    if not re.match("\+\d*", phone_number): #best regex ever here
-        to_client = "Wrong phone number!\n{}".format(format_text)
-    rez = get_number_info(phone_number)
+    if re.match(r"\+(\d)+", phone_number): #best regex ever here
+        rez = get_number_info(phone_number)
+    else:
+        rez = (400,)
     if rez[0] == 200:
-        to_client = preapare_msg(rez[1][0]["displayName"], rez[1][0]["tags"], 0)
+        to_client = prepare_msg(rez[1][0]["displayName"], rez[1][0]["tags"], 0)
         log_reamins(rez[1][1])
-    if rez[0] == 400:
+    elif rez[0] == 400:
         to_client = "Wrong phone number!\n{}".format(format_text)
-    if rez[0] == 404:
+    elif rez[0] == 404:
         to_client = "Nothing found :("
-    if rez[0] == 403:
+    elif rez[0] == 403:
         if rez[1][0] == '403004':
             to_client = "Captcha happend! Type */captcha code_from_picture*"
             capthca_img = rez[1][1]
@@ -105,37 +109,41 @@ def get_phone_info(bot, chat_id, user, phone_number):
             to_client = "We will begin to show results soon for this country"
         else:
             to_client = "Something wrong"
+    else:
+        to_client = "Something wrong"
+
     log_request("{}".format(user.name), phone_number, to_client)
     logger.info("Result:{}".format(to_client.encode('utf-8').strip()))
     return to_client
 
 
 def get_phone_info_nb(bot, chat_id, user, phone_number):
-    format_text = "Please use this phone format: +XXXXXXXXXXX (Ex: +79876543210)"
     to_client = ""
     if '+' in phone_number:
-        phone_number = phone_number.replace('+','')
-    if not re.match("\d*", phone_number): #best regex ever here
-        to_client = "Wrong phone number!\n{}".format(format_text)
-    rez = get_number_info_NumBuster(phone_number)
+        phone_number = phone_number.replace('+', '')
+    if re.match(r"\+(\d)+", phone_number): #best regex ever here
+        rez = get_number_info_NumBuster(phone_number)
+    else:
+        rez = (400,)
     if rez[0] == 200:
         to_client = rez[1]
-    elif rez[0]==428:
+    elif rez[0] == 400:
+        to_client = "Wrong phone number!\n{}".format(format_text)
+    elif rez[0] == 428:
         to_client = "Too many request"
     else:
         to_client = "Something wrong"
     logger.info("Result:{}".format(to_client))
     return to_client
 
+
 def get_info(bot, update):
     if get_reamins() > 10:
         logger.info("{} is searching for {}".format(update.message.from_user.name, update.message.text))
-        bot.send_message(chat_id=update.message.chat_id,
-                         text="*GetContact*\n\n"+get_phone_info(bot, update.message.chat_id, update.message.from_user,
-                                             update.message.text), parse_mode="Markdown")
-    bot.send_message(chat_id=update.message.chat_id,
-                     text="*NumBuster*\n\n"+get_phone_info_nb(bot, update.message.chat_id, update.message.from_user,
-                                         update.message.text), parse_mode="Markdown")
+        reply(bot, update, "*GetContact*\n\n"+get_phone_info(bot, update.message.chat_id, update.message.from_user,
+                                                             update.message.text))
+    reply(bot, update, "*NumBuster*\n\n"+get_phone_info_nb(bot, update.message.chat_id, update.message.from_user,
+                                                           update.message.text))
     # else:
     #     bot.send_message(chat_id=update.message.chat_id, text="Sorry, but we have reached limit for today :(",
     #                      parse_mode="Markdown")
@@ -253,12 +261,22 @@ def unknown(bot, update):
     bot.send_message(chat_id=update.message.chat_id, text="Sorry, I didn't understand that command.\nUse /help")
 
 
-def preapare_msg(name, tags, remain):
+def prepare_msg(name, tags, remain):
+    translation_table = dict.fromkeys(map(ord, '_*#'), None)
+    name = name.translate(translation_table)
+    tags = '\n'.join(tags).translate(translation_table)
     if remain:
-        rez = "{}\n{}\nRemain:{}".format(name, '\n'.join(tags), remain)
+        rez = "{}\n{}\nRemain:{}".format(name, tags, remain)
     else:
-        rez = "*We have found:*\n" + name + "\n" + '\n'.join(tags)
+        rez = "*We have found:*\n" + name + "\n" + tags
     return rez
+
+
+def reply(bot, update, text, parse_mode="Markdown"):
+    messages_count = len(text) / message_size_limit + 1
+    for i in range(messages_count):
+        bot.send_message(chat_id=update.message.chat_id, text=text[message_size_limit * i:message_size_limit * (i+1)],
+                         parse_mode=parse_mode)
 
 
 def log_request(user, requested_phone, response):
