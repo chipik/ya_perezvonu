@@ -286,7 +286,7 @@ def handle_captcha(imgstring):
     logger.debug("Got capthca value:{}".format(captcha_value))
     method = "verify-code"
     captcha_data['validationCode'] = captcha_value
-    result = send_req_to_the_server(base_url + base_uri + method, captcha_data)
+    result = send_req_to_the_server(base_url + base_uri_api + method, captcha_data)
     if result['meta']['httpStatusCode'] == 200:
         print "Captcha passed. Now you can try search again!"
         return 0
@@ -313,7 +313,7 @@ def send_captcha_bot(captcha_value):
     logger.debug("Got capthca value:{}".format(captcha_value))
     method = "verify-code"
     captcha_data['validationCode'] = captcha_value
-    result = send_req_to_the_server(base_url + base_uri + method, captcha_data)
+    result = send_req_to_the_server(base_url + base_uri_api + method, captcha_data)
     if result['meta']['httpStatusCode'] == 200:
         logger.debug("Captcha passed")
         print "Captcha passed. Now you can try search again!"
