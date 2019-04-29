@@ -264,7 +264,9 @@ def unknown(bot, update):
 def prepare_msg(name, tags, remain):
     translation_table = dict.fromkeys(map(ord, '_*#'), None)
     name = name.translate(translation_table)
-    tags = '\n'.join(tags).translate(translation_table)
+    tags = '\n'.join(tags)
+    if len(tags):
+        tags = tags.translate(translation_table)
     if remain:
         rez = "{}\n{}\nRemain:{}".format(name, tags, remain)
     else:
