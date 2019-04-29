@@ -121,7 +121,7 @@ def get_phone_info_nb(bot, chat_id, user, phone_number):
     to_client = ""
     if '+' in phone_number:
         phone_number = phone_number.replace('+', '')
-    if re.match(r"\+(\d)+", phone_number): #best regex ever here
+    if re.match(r"(\d)+", phone_number): #best regex ever here
         rez = get_number_info_NumBuster(phone_number)
     else:
         rez = (400,)
