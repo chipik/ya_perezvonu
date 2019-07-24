@@ -18,7 +18,7 @@ Information about API was received by revers engineering Android app "app.source
 optional arguments:
   -h, --help            show this help message and exit
   -p PHONENUMBER, --phoneNumber PHONENUMBER
-                        Phone number (example: +79217XXX514)
+                        Phone number (example: +xx9217XXX514)
   -t TOKEN, --token TOKEN
                         Token for request (Ex:: AxPA568b72d9c908520b95407e6e95b5482c7995fd98b1e794a2e516a3d1)
   -d DEVICEID, --deviceID DEVICEID
@@ -41,141 +41,141 @@ optional arguments:
 
 
 ```
-➜ python getcontact.py -p +79217XXX514
-Мария Стадник
-Мария Стадник
-Маша Стадник
-Маша Тренер
-Мария Стадник Фуд Парк
-Маша Кассир
-Мария Фитнесфэмили
-Стадник Маша
-Маша Касса
-Маша Кассир 🌳 Food Park
-Мария Стадник Касир Гинза
-Маша Касса Гастро Стадник
-Мария Олимп На Оптиков
-Мария Стадник Европлан
-Мария Тренер Олимпик
-Мария Большой Орех
-Мария Фитнес Бар/2
-Маша Стадник Сиаб
-Маша Тренер Олимп
-Маша Сиаб Личный
-Маша Стадник Зал
-Хс Мария Стадник
-Мария Кассир Фп
-Си Стадник Маша
-Фитнес Бар Маша
-Маша 💪 Стадник
+➜ python getcontact.py -p +xx9217XXX514
+Mariya Stadnik
+Mariya Stadnik
+Masha Stadnik
+Masha Trener
+Mariya Stadnik Fud Park
+Masha Kassir
+Mariya Fitnesfemili
+Stadnik Masha
+Masha Kassa
+Masha Kassir 🌳 Food Park
+Mariya Stadnik Kasir Ginza
+Masha Kassa Gastro Stadnik
+Mariya Olimp Na Optikov
+Mariya Stadnik Evroplan
+Mariya Trener Olimpik
+Mariya Bol'shoj Orekh
+Mariya Fitnes Bar/2
+Masha Stadnik Siab
+Masha Trener Olimp
+Masha Siab Lichnyj
+Masha Stadnik Zal
+Hs Mariya Stadnik
+Mariya Kassir Fp
+Si Stadnik Masha
+Fitnes Bar Masha
+Masha 💪 Stadnik
 Mary Big Ass
-Маша New Бар
-Мария Тренер🏋🏼‍♀️
-Машулька Стадник
-Машка Фитоняшка
-Маша Начальник
-Машуля Стадник
-Мария Фудпарк
-Машуля Касир)
-Стадник Мария
-Мария Тиндер
-Маша Качалка
-Маша Стандик
-Стадник Маня
-Мари Кассир
-Маша Соляра
-Маша Царева
-Маша Артур
-Маша Ванек
-Маша Олимп
-Моя Сестра
-М Стадник
-Мария Фит
-Маша Босс
-Макс Зал
-Мария Фф
-Махыч 👸🏽
-Маша Бар
-Маша Ст
-Марина...
-Стадник💃🏽
-Маша💪🏻❤️
-Стадник
-Маняша
-Зёбра
-Мария
+Masha New Bar
+Mariya Trener🏋🏼‍♀️
+Mashul'ka Stadnik
+Mashka Fitonyashka
+Masha Nachal'nik
+Mashulya Stadnik
+Mariya Fudpark
+Mashulya Kasir)
+Stadnik Mariya
+Mariya Tinder
+Masha Kachalka
+Masha Standik
+Stadnik Manya
+Mari Kassir
+Masha Solyara
+Masha Careva
+Masha Artur
+Masha Vanek
+Masha Olimp
+Moya Sestra
+M Stadnik
+Mariya Fit
+Masha Boss
+Maks Zal
+Mariya Ff
+Mahych 👸🏽
+Masha Bar
+Masha St
+Marina...
+Stadnik💃🏽
+Masha💪🏻❤️
+Stadnik
+Manyasha
+Zyobra
+Mariya
 ```
 
 * Get full information
 
 ```
-➜  getcontact python getcontact.py -p +79217XXX514 -a
+➜  getcontact python getcontact.py -p +xx9217XXX514 -a
 We found:
 displayName: Мария Стадник
 countryCode: RU
 tags
-    Мария Стадник
-    Маша Стадник
-    Маша Тренер
-    Мария Стадник Фуд Парк
-    Маша Кассир
-    Мария Фитнесфэмили
-    Стадник Маша
-    Маша Касса
-    Маша Кассир 🌳 Food Park
-    Мария Стадник Касир Гинза
-    Маша Касса Гастро Стадник
-    Мария Олимп На Оптиков
-    Мария Стадник Европлан
-    Мария Тренер Олимпик
-    Мария Большой Орех
-    Мария Фитнес Бар/2
-    Маша Стадник Сиаб
-    Маша Тренер Олимп
-    Маша Сиаб Личный
-    Маша Стадник Зал
-    Хс Мария Стадник
-    Мария Кассир Фп
-    Си Стадник Маша
-    Фитнес Бар Маша
-    Маша 💪 Стадник
+    Mariya Stadnik
+    Masha Stadnik
+    Masha Trener
+    Mariya Stadnik Fud Park
+    Masha Kassir
+    Mariya Fitnesfemili
+    Stadnik Masha
+    Masha Kassa
+    Masha Kassir 🌳 Food Park
+    Mariya Stadnik Kasir Ginza
+    Masha Kassa Gastro Stadnik
+    Mariya Olimp Na Optikov
+    Mariya Stadnik Evroplan
+    Mariya Trener Olimpik
+    Mariya Bol'shoj Orekh
+    Mariya Fitnes Bar/2
+    Masha Stadnik Siab
+    Masha Trener Olimp
+    Masha Siab Lichnyj
+    Masha Stadnik Zal
+    Hs Mariya Stadnik
+    Mariya Kassir Fp
+    Si Stadnik Masha
+    Fitnes Bar Masha
+    Masha 💪 Stadnik
     Mary Big Ass
-    Маша New Бар
-    Мария Тренер🏋🏼‍♀️
-    Машулька Стадник
-    Машка Фитоняшка
-    Маша Начальник
-    Машуля Стадник
-    Мария Фудпарк
-    Машуля Касир)
-    Стадник Мария
-    Мария Тиндер
-    Маша Качалка
-    Маша Стандик
-    Стадник Маня
-    Мари Кассир
-    Маша Соляра
-    Маша Царева
-    Маша Артур
-    Маша Ванек
-    Маша Олимп
-    Моя Сестра
-    М Стадник
-    Мария Фит
-    Маша Босс
-    Макс Зал
-    Мария Фф
-    Махыч 👸🏽
-    Маша Бар
-    Маша Ст
-    Марина...
-    Стадник💃🏽
-    Маша💪🏻❤️
-    Стадник
-    Маняша
-    Зёбра
-    Мария
-phoneNumber: +79217XXX514
+    Masha New Bar
+    Mariya Trener🏋🏼‍♀️
+    Mashul'ka Stadnik
+    Mashka Fitonyashka
+    Masha Nachal'nik
+    Mashulya Stadnik
+    Mariya Fudpark
+    Mashulya Kasir)
+    Stadnik Mariya
+    Mariya Tinder
+    Masha Kachalka
+    Masha Standik
+    Stadnik Manya
+    Mari Kassir
+    Masha Solyara
+    Masha Careva
+    Masha Artur
+    Masha Vanek
+    Masha Olimp
+    Moya Sestra
+    M Stadnik
+    Mariya Fit
+    Masha Boss
+    Maks Zal
+    Mariya Ff
+    Mahych 👸🏽
+    Masha Bar
+    Masha St
+    Marina...
+    Stadnik💃🏽
+    Masha💪🏻❤️
+    Stadnik
+    Manyasha
+    Zyobra
+    Mariya
+phoneNumber: +xx9217XXX514
 tagCount: 61
 Left 122 requests
 ```
