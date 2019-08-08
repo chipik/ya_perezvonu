@@ -36,8 +36,8 @@ args = parser.parse_args()
 
 bot_token = args.token
 sqlite_file = 'bot_db.sqlite'
-admin_pwd = "@Chpkk"  # bot owner name here
-
+admin_pwd = '@Chpkk'  # bot owner name here
+banfile = 'ban.txt'
 
 def init_logger(logname, level):
     # generic log conf
@@ -138,6 +138,9 @@ def get_phone_info_nb(bot, chat_id, user, phone_number):
 
 
 def get_info(bot, update):
+    if check_ban(update.message.from_user.name):
+        reply(bot, update, 'Nothing found :(')
+        return 0
     if get_reamins() > 10:
         logger.info("{} is searching for {}".format(update.message.from_user.name, update.message.text))
         reply(bot, update, "*GetContact*\n\n"+get_phone_info(bot, update.message.chat_id, update.message.from_user,
@@ -175,6 +178,19 @@ def get_top(field, limit):
     conn.close()
     return table
 
+def ban_user(username):
+    f = open(banfile, 'a+')
+    f.write('{}\n'.format(username))
+    f.close()
+
+def check_ban(username):
+    f = open(banfile, 'r')
+    banned = f.read().splitlines()
+    f.close()
+    if username in banned:
+        return True
+    else:
+        return False
 
 def get_about(bot, update, args):
     rez = ""
@@ -194,7 +210,7 @@ def get_about(bot, update, args):
             else:
                 field = 'user_name'
                 limit = 10
-            rez = "TOP {}s:\n```\n".format(field) + get_top(field, limit).get_string() + "\n```"
+            rez = "TOP {}s:\n```\n".format(field).replace('_','-') + get_top(field, limit).get_string().replace('_','-') + "\n```"
         elif args[0] == "get-vars" and update.message.from_user.name == admin_pwd:
             vars = get_vars()
             rez = "AES KEY: {}\n" \
@@ -213,6 +229,14 @@ def get_about(bot, update, args):
             if '-r' in args:
                 log_reamins(args[args.index('-r')+1])
             rez = 'New vars have been setup'
+        elif args[0] == "ban" and update.message.from_user.name == admin_pwd:
+            if len(args)<=1:
+                f = open(banfile,'r')
+                rez = 'Banned users:\n{}'.format(''.join(f.readlines()))
+                f.close()
+            else:
+                ban_user(args[1])
+                rez = 'User {} was banned'.format(args[1])
     else:
         if update.message.from_user.name == admin_pwd:
             rez = "Hello my master!\nYou can use commands:\n" \
@@ -220,7 +244,8 @@ def get_about(bot, update, args):
                   "/batya top user\_name 15 - Top 15 users who asked bot (default: user-name)\n" \
                   "/batya top requested\_phone 15 - Top 15 requested-phone (default: user-name)\n" \
                   "/batya get-vars - Get vars values\n" \
-                  "/batya set-vars -t token -k key -d DeviceID -e PRIVATE-KEY -r REMAIN"
+                  "/batya set-vars -t token -k key -d DeviceID -e PRIVATE-KEY -r REMAIN\n" \
+                  "/batya ban USERNAME"
         else:
             rez = "Hi {}.\n@Chpkk moy batya!".format(update.message.from_user.username)
 
@@ -338,9 +363,14 @@ def create_db():
     conn.commit()
     conn.close()
 
+def create_banfile():
+    f = open(banfile, 'w+')
+    f.close()
 
 if not os.path.isfile(sqlite_file):
     create_db()
+if not os.path.isfile(banfile):
+    create_banfile()
 
 updater = Updater(bot_token)
 dispatcher = updater.dispatcher
