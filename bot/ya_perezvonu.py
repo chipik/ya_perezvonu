@@ -43,13 +43,6 @@ admin_id = 50782051  # bot owner id here
 whitelist_status = 1 # Whitelist status. 1 - enabled, 0 - disabled
 getcontact_status = 1 # Getcontact status. 1 - enabled, 0 - disabled
 numbuster_status = 1 # Numbuster status. 1 - enabled, 0 - disabled
-REQUEST_KWARGS={
-    'proxy_url': 'socks5://chipik.ch:1338',
-    'urllib3_proxy_kwargs': {
-        'username': 'freedom',
-        'password': 'iloveuchipik',
-    }
-}
 
 vin_db = {}
 def init_logger(logname, level):
@@ -693,7 +686,7 @@ def invite_me(bot, update, args):
 if not os.path.isfile(sqlite_file):
     create_db()
 
-updater = Updater(bot_token, request_kwargs=REQUEST_KWARGS)
+updater = Updater(bot_token)
 dispatcher = updater.dispatcher
 
 start_handler = CommandHandler('start', start)
