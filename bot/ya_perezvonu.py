@@ -39,10 +39,11 @@ args = parser.parse_args()
 
 bot_token = args.token
 sqlite_file = 'bot_db.sqlite'
-admin_id = 50782051  # bot owner id here
+admin_id = 00000000  # bot owner id here
 whitelist_status = 1 # Whitelist status. 1 - enabled, 0 - disabled
 getcontact_status = 1 # Getcontact status. 1 - enabled, 0 - disabled
 numbuster_status = 1 # Numbuster status. 1 - enabled, 0 - disabled
+demoreqests_nbr = 2 # Number of requests in demo mode
 
 vin_db = {}
 def init_logger(logname, level):
@@ -146,12 +147,26 @@ def get_phone_info_nb(bot, chat_id, user, phone_number):
     logger.info("Result:{}".format(to_client))
     return to_client
 
+def check_demorequest(id):
+    if get_demoreqests_for_user(id) <= demoreqests_nbr:
+        return True
+    elif check_admin(id):
+        return True
+    elif check_whitelist(id):
+        return True
+    else:
+        return False
+
+def send_msg_to_admin(msg):
+    bot.send_message(chat_id=int(admin_id), text=msg)
 
 def get_info(bot, update):
     global vin_db
     log_request("{}:{}".format(update.message.from_user.name,update.message.from_user.id), update.message.text, "")
     logger.info("{}({}) is searching for {}".format(update.message.from_user.name, update.message.from_user.id,
                                                     update.message.text))
+    if not check_demorequest(update.message.from_user.id):
+        reply(bot, update, 'You had only {}. You have run out of demo requests. Request an invite.'.format(demoreqests_nbr))
     if not check_user(username=update.message.from_user.name, id=update.message.from_user.id):
         if whitelist_status == 1:
             reply(bot, update, 'This is invite only bot now! He-he-he.\nYou can request invite and I will add you (or not :) ).\nJust type:\n/invite <!!Your message here!!>\nFor example:\n/invite i\'m from Vasya')
@@ -245,6 +260,7 @@ def whitelist_user(username, id):
     if check_in_invites(id):
         invitelist_rem_user(id)
 
+
 def whitelist_rem_user(id):
     conn = create_connection(sqlite_file)
     try:
@@ -330,6 +346,17 @@ def check_whitelist(id):
     else:
         return False
 
+def get_demoreqests_for_user(id):
+    conn = create_connection(sqlite_file)
+    c = conn.cursor()
+    c.execute("SELECT count_nmbr FROM demorequests WHERE user_id=?", (id,))
+    row = c.fetchone()
+    conn.close()
+    if row is None:
+        return 0
+    else:
+        return row[0]
+
 def check_admin(id):
     if id == admin_id:
         return True
@@ -338,6 +365,8 @@ def check_admin(id):
 
 def check_user(username = 'None', id='None'):
     if check_admin(id):
+        return True
+    if check_demorequest(str(id)):
         return True
     if check_ban(str(id)):
         return False
@@ -422,12 +451,16 @@ def get_about(bot, update, args):
             else:
                 whitelist_user(args[1].split(":")[0],args[1].split(":")[1])
                 rez = 'User {} was whitelisted'.format(args[1])
+                bot.send_message(chat_id=int(args[1].split(":")[1]),
+                                 text='Hey! Your invite was approved. Now you can use bot without any restrictions.')
         elif args[0] == "rem" and update.message.from_user.id == admin_id:
             if len(args) <= 1:
                 rez = "Add user_id that will be removed from the whitelist"
             else:
                 whitelist_rem_user(args[1])
                 rez = 'User {} was removed from the whitelist'.format(args[1])
+                bot.send_message(chat_id=int(args[1]),
+                                 text='Hey! You was banned. Sorry for that :)')
         elif args[0] == "remban" and update.message.from_user.id == admin_id:
             if len(args) <= 1:
                 rez = "Add user_id that will be removed from the banlist"
@@ -460,11 +493,13 @@ def get_about(bot, update, args):
                   "Whitelist status: {}\n" \
                   "GetContact status: {}\n"\
                   "NumBuster status: {}\n" \
+                  "Demorequests: {}\n" \
                   "Banned:\n{}\n" \
                   "Whitelisted:\n{}\n" \
-                  "Invite req:\n{}".format(get_reamins(),whitelist_status,getcontact_status,numbuster_status,get_banlist(15),get_whitelist(15),get_invitelist(15))
+                  "Invite req:\n".format(get_reamins(),whitelist_status,getcontact_status,numbuster_status,demoreqests_nbr,get_banlist(15),get_whitelist(15))
+            rez = rez + get_invitelist(15)
         elif args[0] == "inv" and update.message.from_user.id == admin_id:
-            rez = 'Invite requests:\n{}'.format(get_invitelist(20))
+            rez = 'Invite requests:\n' + get_invitelist(20)
     else:
         if update.message.from_user.id == admin_id:
             rez = "Hello my master!\nYou can use commands:\n" \
@@ -543,6 +578,7 @@ def reply(bot, update, text, parse_mode="Markdown"):
 
 
 def log_request(user, requested_phone, response):
+    log_demorequest(int(user.split(":")[1]))
     conn = create_connection(sqlite_file)
     try:
         c = conn.cursor()
@@ -555,6 +591,32 @@ def log_request(user, requested_phone, response):
         conn.close()
         raise RuntimeError("Uh oh, an error occurred ...{}")
 
+def log_demorequest(id):
+    nmbr = get_demoreqests_for_user(id)
+    if nmbr:
+        conn = create_connection(sqlite_file)
+        try:
+            c = conn.cursor()
+            update_demoreq = "UPDATE demorequests SET count_nmbr=?"
+            c.execute(update_demoreq, (nmbr+1,))
+            conn.commit()
+            conn.close()
+        except:
+            conn.rollback()
+            conn.close()
+            raise RuntimeError("Uh oh, an error occurred ...{}")
+    else:
+        conn = create_connection(sqlite_file)
+        try:
+            c = conn.cursor()
+            insert_demoreq = "INSERT INTO demorequests (user_id, count_nmbr) VALUES (?, ?)"
+            c.execute(insert_demoreq, (id, 1,))
+            conn.commit()
+            conn.close()
+        except:
+            conn.rollback()
+            conn.close()
+            raise RuntimeError("Uh oh, an error occurred ...{}")
 
 def log_reamins(remain):
     conn = create_connection(sqlite_file)
@@ -580,7 +642,7 @@ def get_reamins():
     return result
 
 def get_current_timestamp():
-    return datetime.datetime.now().strftime("%H:%M - %b %d %Y")
+    return datetime.datetime.now().strftime("%b %d %Y")
 
 def create_db():
     logger.info("Creating new DB")
@@ -630,6 +692,14 @@ def create_db():
                          "user_id", "TEXT",
                          "message", "TEXT",
                          "time", "TEXT"))
+    c.execute("CREATE TABLE {} ("
+              "{} {} PRIMARY KEY,"
+              "{} {} NOT NULL,"
+              "{} {} NOT NULL"
+              ")".format("demorequests",
+                         "id", "INTEGER",
+                         "user_id", "TEXT",
+                         "count_nmbr", "INTEGER"))
     conn.commit()
     conn.close()
 
@@ -682,6 +752,7 @@ def invite_me(bot, update, args):
         add_in_invitelist(update.message.from_user.name, str(update.message.from_user.id), invmessage)
         message = 'Got yor request. Please wait for approval'
     reply(bot, update, message, parse_mode='')
+    bot.send_message(chat_id=int(admin_id), text='[ADMIN] Invite request from {}:{} msg: '.format(update.message.from_user.name, str(update.message.from_user.id))+invmessage)
 
 if not os.path.isfile(sqlite_file):
     create_db()
