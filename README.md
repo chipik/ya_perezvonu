@@ -5,6 +5,17 @@ Information about API was received by reverse engineering `app.source.getcontact
 
 ## How to use 
 
+1. Install `GetContact` app on rooted device
+2. Log In
+3. Get `AES_KEY` and `token`
+
+```
+adb shell
+cat /data/data/app.source.getcontact/shared_prefs/GetContactSettingsPref.xml | grep FINAL_KEY
+cat /data/data/app.source.getcontact/shared_prefs/GetContactSettingsPref.xml | grep TOKEN
+```
+4. Use script `getcontact.py`
+
 ```
 ➜ python getcontact.py -h
 usage: getcontact.py [-h] [-p PHONENUMBER] [-t TOKEN] [-d DEVICEID]

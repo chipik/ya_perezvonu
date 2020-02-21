@@ -37,13 +37,14 @@ parser.add_argument('-t', '--token', help='Telegram bot token')
 parser.add_argument('-v', '--debug', action='store_true', help='Show debug info')
 args = parser.parse_args()
 
-bot_token = args.token
+bot_token = ''
 sqlite_file = 'bot_db.sqlite'
-admin_id = 00000000  # bot owner id here
+admin_id = 13371337  # bot owner id here
 whitelist_status = 1 # Whitelist status. 1 - enabled, 0 - disabled
 getcontact_status = 1 # Getcontact status. 1 - enabled, 0 - disabled
 numbuster_status = 1 # Numbuster status. 1 - enabled, 0 - disabled
 demoreqests_nbr = 2 # Number of requests in demo mode
+
 
 vin_db = {}
 def init_logger(logname, level):
@@ -498,8 +499,14 @@ def get_about(bot, update, args):
                   "Whitelisted:\n{}\n" \
                   "Invite req:\n".format(get_reamins(),whitelist_status,getcontact_status,numbuster_status,demoreqests_nbr,get_banlist(15),get_whitelist(15))
             rez = rez + get_invitelist(15)
+            bot.send_message(chat_id=update.message.chat_id,
+                             text=rez)
+            return
         elif args[0] == "inv" and update.message.from_user.id == admin_id:
             rez = 'Invite requests:\n' + get_invitelist(20)
+            bot.send_message(chat_id=update.message.chat_id,
+                             text=rez)
+            return
     else:
         if update.message.from_user.id == admin_id:
             rez = "Hello my master!\nYou can use commands:\n" \
