@@ -162,8 +162,8 @@ Also bot get phone number by telegram nickname using [Telegram data leak](https:
 /tg @vova_ivanov
 
                                             ~я перезвоню
-                                            Nickname: @vova_ivanov
-                                            Phone: +79165507327
+                                            Nickname: @vov****anov
+                                            Phone: +791*****7327
                                             id: 155170541
 ```
     
