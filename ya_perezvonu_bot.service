@@ -6,8 +6,8 @@ After=network.target
 [Service]
 Type=simple
 User=<username>
-WorkingDirectory=/home/admin/ya_perezvonu
-ExecStart=/usr/bin/python /home/<username>/ya_perezvonu/ya_perezvonu.py
+WorkingDirectory=/home/<username>/ya_perezvonu
+ExecStart=/usr/bin/python3 /home/<username>/ya_perezvonu/ya_perezvonu.py
 RestartSec=10
 Restart=always
  

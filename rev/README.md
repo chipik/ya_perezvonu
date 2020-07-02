@@ -110,6 +110,10 @@ def decrypt_aes(payload):
     return rez
 ```
 
+But the easiest way to get AES key is read it from `Shared Prefernces`.
+
+`cat /data/data/app.source.getcontact/shared_prefs/GetContactSettingsPref.xml | grep FINAL_KEY`
+
 ```
 ➜ python getcontact.py -D "it1BCQGnv+A3i6FmRigzviBGSJqF58K42YBCMtDP53fvMH/bJO4XZnXlDEC3AZWYSGGBpZgRv21LcNvgaP94gA64L4BbqgE7dzHW0vXK5Ql8vBrtqZiWEfZ+aXHDWydQok/mYnMTfYNDxySkGGUez2qwL4mLIR7yelOlQQ9sup0="
 

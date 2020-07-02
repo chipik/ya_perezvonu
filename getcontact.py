@@ -42,13 +42,10 @@ args = parser.parse_args()
 
 # Global vars
 HMAC_key = "2Wq7)qkX~cp7)H|n_tc&o+:G_USN3/-uIi~>M+c ;Oq]E{t9)RC_5|lhAA_Qq%_4"
-# cat /data/data/app.source.getcontact/shared_prefs/GetContactSettingsPref.xml | grep FINAL_KEY
-AES_key = "{}".format(args.key).decode("hex")
-# cat /data/data/app.source.getcontact/shared_prefs/GetContactSettingsPref.xml | grep TOKEN
-token = args.token
+AES_key = bytes.fromhex("{}".format(args.key))  # cat /data/data/app.source.getcontact/shared_prefs/GetContactSettingsPref.xml | grep FINAL_KEY
+token = args.token # cat /data/data/app.source.getcontact/shared_prefs/GetContactSettingsPref.xml | grep TOKEN
 device_id = args.deviceID
-# cat /data/data/app.source.getcontact/shared_prefs/GetContactSettingsPref.xml | grep PRIVATE_KEY
-exp = int(args.exp)
+exp = int(args.exp) # cat /data/data/app.source.getcontact/shared_prefs/GetContactSettingsPref.xml | grep PRIVATE_KEY
 mod = 900719925481
 
 # Others
@@ -57,12 +54,22 @@ base_uri_api = "/v2.1/"
 methods = {"number-detail": "details", "search": "search", "verify-code": "", "register": ""}
 timestamp = str(time.time()).split('.')[0]
 
-#you can store auth tokens here
+# you can store auth tokens here
 # env_data=[{'token':'token_here',
-#            'aes_key':'aes_key_here'}
+#            'aes_key':'aes_key_here',
+#            'name':'any_name'}
 # ]
 
-env_data=[]
+env_data = [{'token': 'krtULaf8fe19927fa8a1e2d28c995578a7c16a76c721f584661d0b63751',
+             'aes_key': '0d7f40a508d2d8a2437b17f94d6fb7d22296426ea954038266718c703e58146a',
+             'name': 'chipik'},
+            {'token': 'hxgIn27234563018a7ba312b501c39b0f2f8816ee9c1a4d7ed30f9d3369',
+             'aes_key': '7499b9c9a0ff9028c6bff50835857db120d7bb8cf8ba3d0b5ec3e65193622ac9',
+             'name': 'vika'},
+            {'token':'kFktvae5f375e7454d6da16bd263c88114f8702eb21692988f7035c3908',
+             'aes_key':'e7bb64e60cbb9644bdbd34b1c72aaf424619d0a26ec3d25aebba01389351800a',
+             'name':'4ekin'}
+            ]
 
 headers = {
     "X-App-Version": "4.2.0",
@@ -124,6 +131,8 @@ def init_logger(logname, level):
     logger.addHandler(ch)
     return logger
 
+def get_env_data():
+    return env_data
 
 def set_new_token(new_token):
     global token
@@ -137,7 +146,8 @@ def set_new_token(new_token):
 def set_new_aes_key(new_aes_key):
     global AES_key
     logger.debug("Setting new AES key:{}".format(new_aes_key))
-    AES_key = "{}".format(new_aes_key).decode("hex")
+    # AES_key = "{}".format(new_aes_key).decode("hex")
+    AES_key = bytes.fromhex("{}".format(new_aes_key))
 
 
 def set_new_exp(new_exp):
@@ -155,37 +165,40 @@ def set_new_device_id(new_device_id):
 
 
 def calculate_new_aes_key(serverKey):
-    print "Calculating new AES key. It can takes time..."
+    print("Calculating new AES key. It can takes time...")
     longInt = int(serverKey) ** exp % mod
     new_key = hashlib.sha256(bytearray(str(longInt), "utf-8")).hexdigest()
     return str(new_key)
 
 
 def get_new_vars():
-    print "Getting new token and AES key..."
+    print("Getting new token and AES key...")
     method = "register"
     headers["X-Token"] = ""
     result = send_req_to_the_server(base_url + base_uri_api + method, new_vars_data, True)
     new_token = result["result"]["token"]
     serverKey = result["result"]["serverKey"]
     # serverKey = 408701071142
-    print "Params:\n" \
+    print("Params:\n" \
           "token: {}\n" \
           "serverkey: {}\n" \
           "exp: {}\n" \
-          "mod: {}".format(new_token, serverKey, exp, mod)
+          "mod: {}".format(new_token, serverKey, exp, mod))
     logger.debug("New token: {}\nserverKey:{}".format(new_token, serverKey))
     new_key = calculate_new_aes_key(serverKey)
-    print "New token: {}\nNew AES key:{}".format(new_token, new_key)
+    print("New token: {}\nNew AES key:{}".format(new_token, new_key))
     set_new_token(token)
     set_new_aes_key(new_key)
 
+
 def set_random_env():
     if len(env_data):
-        token = env_data[randint(0, len(env_data)-1)]['token']
-        aes_key = env_data[randint(0, len(env_data)-1)]['aes_key']
+        rand = randint(0, len(env_data) - 1)
+        token = env_data[rand]['token']
+        aes_key = env_data[rand]['aes_key']
         set_new_token(token)
         set_new_aes_key(aes_key)
+
 
 def get_vars():
     return (AES_key.encode('hex'), token, device_id, exp)
@@ -196,10 +209,9 @@ def prepare_payload(payload):
 
 
 def create_sign(timestamp, payload):
-    logger.debug("Signing...\n{}-{}\n"
-                 "key: {}".format(timestamp, payload, AES_key.encode('hex')))
-    message = bytes("{}-{}".format(timestamp, payload))
-    secret = bytes(HMAC_key)
+    logger.debug("Signing...\n{}-{}\n".format(timestamp, payload))
+    message = bytes("{}-{}".format(timestamp, payload), encoding='utf8')
+    secret = bytes(HMAC_key, encoding='utf8')
     signature = base64.b64encode(hmac.new(secret, message, digestmod=hashlib.sha256).digest())
     logger.debug("Result: {}".format(signature))
     return signature
@@ -215,15 +227,15 @@ def send_post(url, data):
         logger.debug("Response: {}".format(r.json()))
         return r.json()
     elif r.status_code == 404:
-        print "Nothing found for {} :(".format(args.phoneNumber)
+        print("Nothing found for {} :(".format(args.phoneNumber))
     elif r.status_code == 403:
         logger.debug("Captcha? Status:{}".format(r.status_code))
         return r.json()["data"]
     elif r.status_code == 400:
-        print "Wrong Number? Status: {}".format(r.status_code)
+        print("Wrong Number? Status: {}".format(r.status_code))
         return r.json()["data"]
     else:
-        print "Something wrong! Status: {}".format(r.status_code)
+        print("Something wrong! Status: {}".format(r.status_code))
     return r.status_code
 
 
@@ -234,18 +246,19 @@ logger = init_logger("GetContact", logging.INFO)
 
 
 def decrypt_aes(payload):
-    logger.debug("Decrypting...\nDATA:{}".format(payload.encode("hex")))
+    # logger.debug("Decrypting...\nDATA:{}".format(payload.encode("hex")))
+    logger.debug("Decrypting...".format())
     cipher = AES.new(AES_key, AES.MODE_ECB)
-    rez = unpad(cipher.decrypt(payload))
+    rez = unpad(str(cipher.decrypt(payload),'utf-8'))
     logger.debug("Decrypted result:{}".format(rez))
     return rez
 
 
-def encrypt_aes(str):
-    logger.debug("Encrypting...\nDATA:{}".format(str))
-    raw = pad(str)
+def encrypt_aes(strr):
+    logger.debug("Encrypting...\nDATA:{}".format(strr))
+    raw = pad(strr)
     cipher = AES.new(AES_key, AES.MODE_ECB)
-    return base64.b64encode(cipher.encrypt(raw))
+    return str(base64.b64encode(cipher.encrypt(raw)), 'utf-8')
 
 
 def send_req_to_the_server(url, payload, no_encrypt=False):
@@ -268,24 +281,24 @@ def send_req_to_the_server(url, payload, no_encrypt=False):
 
 def print_results(profile, remainingCount):
     if args.all:
-        print "We found:"
+        print("We found:")
         for item in profile:
             if profile[item]:
                 if item == 'tags':
-                    print item
+                    print(item)
                     for tag in profile[item]:
-                        print "\t",
-                        print tag
+                        print("\t"),
+                        print(tag)
                 else:
-                    print "{}:".format(item),
-                    print profile[item]
-        print "Left {} requests".format(remainingCount)
+                    print("{}:".format(item), )
+                    print(profile[item])
+        print("Left {} requests".format(remainingCount))
         return 0
     else:
-        print profile['displayName'].encode('utf-8').strip()
+        print(profile['displayName'].encode('utf-8').strip())
         if profile['tags']:
             for tag in profile['tags']:
-                print tag.encode('utf-8').strip()
+                print(tag.encode('utf-8').strip())
     return 0
 
 
@@ -295,22 +308,22 @@ def handle_captcha(imgstring):
     filename = "captcha_{}.jpg".format(randint(0, 1000))
     with open(filename, 'wb') as f:
         f.write(imgdata)
-    print "Captcha saved in file: {}".format(filename)
-    print "[!] Check it and type it below. "
-    captcha_value = raw_input("Enter captcha:")
+    print("Captcha saved in file: {}".format(filename))
+    print("[!] Check it and type it below. ")
+    captcha_value = input("Enter captcha:")
     logger.debug("Got capthca value:{}".format(captcha_value))
     method = "verify-code"
     captcha_data['validationCode'] = captcha_value
-    result = send_req_to_the_server(base_url + base_uri + method, captcha_data)
+    result = send_req_to_the_server(base_url + base_uri_api + method, captcha_data)
     if result['meta']['httpStatusCode'] == 200:
-        print "Captcha passed. Now you can try search again!"
+        print("Captcha passed. Now you can try search again!")
         return 0
     elif result['meta']['httpStatusCode'] == 403:
         code = result['meta']['errorCode']
-        print "Error ({}):".format(code),
-        print result['meta']['errorMessage']
+        print("Error ({}):".format(code)),
+        print(result['meta']['errorMessage'])
         if code is "403004":
-            print "Wrong Captcha!"
+            print("Wrong Captcha!")
     return 1
 
 
@@ -320,7 +333,7 @@ def save_captcha_bot(imgstring):
     filename = "captcha/captcha_{}.jpg".format(randint(0, 1000))
     with open(filename, 'wb') as f:
         f.write(imgdata)
-    print "Captcha saved in file: {}".format(filename)
+    print("Captcha saved in file: {}".format(filename))
     return filename
 
 
@@ -328,20 +341,25 @@ def send_captcha_bot(captcha_value):
     logger.debug("Got capthca value:{}".format(captcha_value))
     method = "verify-code"
     captcha_data['validationCode'] = captcha_value
-    result = send_req_to_the_server(base_url + base_uri + method, captcha_data)
+    result = send_req_to_the_server(base_url + base_uri_api + method, captcha_data)
     if result['meta']['httpStatusCode'] == 200:
         logger.debug("Captcha passed")
-        print "Captcha passed. Now you can try search again!"
+        print("Captcha passed. Now you can try search again!")
         return 0
     elif result['meta']['httpStatusCode'] == 403:
         code = result['meta']['errorCode']
-        print "Error ({}):".format(code),
-        print result['meta']['errorMessage']
+        print("Error ({}):".format(code), )
+        print(result['meta']['errorMessage'])
         if code is "403004":
             logger.debug("Wrong Captcha!")
-            print "Wrong Captcha!"
+            print("Wrong Captcha!")
     return 1
 
+def get_acc_name_by_token(token_val):
+    for env in env_data:
+        if env['token'] == token_val:
+            return env['name']
+    return ''
 
 def get_number_info(phoneNumber):
     # return [code, data]
@@ -356,8 +374,8 @@ def get_number_info(phoneNumber):
         remainingCount = result['result']['subscriptionInfo']['usage']['search']['remainingCount']
     elif result['meta']['httpStatusCode'] == 403:
         code = result['meta']['errorCode']
-        print "Error ({}):".format(code),
-        print result['meta']['errorMessage']
+        print("Error ({}):".format(code)),
+        print(result['meta']['errorMessage'])
         img_file = ""
         if code == "403004":
             logger.debug("Captcha handler here")
@@ -367,18 +385,18 @@ def get_number_info(phoneNumber):
         return [result['meta']['httpStatusCode'], [code, img_file]]
     elif result['meta']['httpStatusCode'] == 400:
         code = result['meta']['errorCode']
-        print "Error ({}):".format(code),
-        print result['meta']['errorMessage']
+        print("Error ({}):".format(code)),
+        print(result['meta']['errorMessage'])
         # return result['meta']['httpStatusCode']
         return [result['meta']['httpStatusCode'], ""]
     elif result['meta']['httpStatusCode'] == 404:
         code = result['meta']['errorCode']
-        print "Error ({}):".format(code),
-        print result['meta']['errorMessage']
+        print("Error ({}):".format(code)),
+        print(result['meta']['errorMessage'])
         # return result['meta']['httpStatusCode']
         return [result['meta']['httpStatusCode'], ""]
     else:
-        print "Something wrong!"
+        print("Something wrong!")
         return [777, ""]
         # return 0
     if profile['tagCount'] > 0:
@@ -396,7 +414,7 @@ def get_number_info(phoneNumber):
             for tag in result_dec['result']['tags']:
                 profile['tags'].append(tag['tag'])
     print_results(profile, remainingCount)
-    return [200, [profile, remainingCount]]
+    return [200, [profile, {"name":get_acc_name_by_token(token),"remain":remainingCount}]]
 
 
 if __name__ == '__main__':
@@ -412,8 +430,8 @@ if __name__ == '__main__':
 
     if args.decrypt:
         decrypted_payload = decrypt_aes(base64.b64decode(args.decrypt))
-        print "Decrypted: {}".format(decrypted_payload)
+        print("Decrypted: {}".format(decrypted_payload))
 
     if args.encrypt:
         encrypted_payload = encrypt_aes(args.encrypt)
-        print "Encrypted: {}".format(encrypted_payload)
+        print("Encrypted: {}".format(encrypted_payload))

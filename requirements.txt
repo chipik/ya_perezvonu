@@ -1,0 +1,7 @@
+python-telegram-bot
+pycrypto
+requests~=2.23.0
+PySocks
+beautifulsoup4~=4.9.1
+prettytable~=0.7.2
+phonenumbers

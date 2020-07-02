@@ -10,10 +10,11 @@ Information about API was received by reverse engineering "com.numbuster.android
 --- chipik
 '''
 
+
 parser = argparse.ArgumentParser(description=help_desc, formatter_class=argparse.RawTextHelpFormatter)
 parser.add_argument('-p', '--phoneNumber', help='Phone number (example: +79217XXX514)')
-parser.add_argument('-t', '--token', default='oig19z3dcyswwowws0180c84gsoww0gkko10gwg8w0so8ow4k',
-                    help='Token for request (Ex:: oig19z3dcyswwowws0211c84gsoww0gkko10gwg8w0so8ow4k)')
+# parser.add_argument('-t', '--token', default='oig19z3dcyswwowws0880c84gsoww0gkko00gwg8w0so8ow4k',
+#                     help='Token for request (Ex:: oig19z3dcyswwowws0111c84gsoww0gkko00gwg8w0so8ow4k)')
 parser.add_argument('-c', '--countryCode', default='us', help='Country code (default: us)')
 parser.add_argument('-a', '--all', action='store_true', help='Print all possible info')
 parser.add_argument('-P', '--proxy', help='Use proxy (ex: 127.0.0.1:8080)')
@@ -33,8 +34,8 @@ if args.proxy:
 headers = {
     "User-Agent": "okhttp/3.9.1",
 }
-
 nm_token = args.token
+tokens=[]
 nm_token = tokens[randint(0, len(tokens)-1)]
 phoneNumber = args.phoneNumber
 base_url = "https://api.numbuster.com"
@@ -84,7 +85,7 @@ def send_post(url, params):
         logger.debug("{}. Status:{}".format(rez, r.status_code))
         return (r.status_code, [r])
     else:
-        print "Something wrong! Status: {}".format(r.status_code)
+        print ("Something wrong! Status: {}".format(r.status_code))
     return (r.status_code, [])
 
 
@@ -135,7 +136,7 @@ def get_number_info_NumBuster(phoneNumber):
                      "{}\n" \
                      "{}".format(info[1]["firstName"].encode("utf-8").strip(), info[1]["lastName"].encode("utf-8").strip(),
                                  '\n'.join(contacts), comments)
-            print "Result:\n{}".format(result)
+            print ("Result:\n{}".format(result))
             return (info[0], "*We have found:*\n{}".format(result))
         else:
             return (info[0], "Nothing found :(")
