@@ -60,15 +60,9 @@ timestamp = str(time.time()).split('.')[0]
 #            'name':'any_name'}
 # ]
 
-env_data = [{'token': 'krtULaf8fe19927fa8a1e2d28c995578a7c16a76c721f584661d0b63751',
-             'aes_key': '0d7f40a508d2d8a2437b17f94d6fb7d22296426ea954038266718c703e58146a',
+env_data = [{'token': '1',
+             'aes_key': '2',
              'name': 'chipik'},
-            {'token': 'hxgIn27234563018a7ba312b501c39b0f2f8816ee9c1a4d7ed30f9d3369',
-             'aes_key': '7499b9c9a0ff9028c6bff50835857db120d7bb8cf8ba3d0b5ec3e65193622ac9',
-             'name': 'vika'},
-            {'token':'kFktvae5f375e7454d6da16bd263c88114f8702eb21692988f7035c3908',
-             'aes_key':'e7bb64e60cbb9644bdbd34b1c72aaf424619d0a26ec3d25aebba01389351800a',
-             'name':'4ekin'}
             ]
 
 headers = {
